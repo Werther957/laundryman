@@ -1,0 +1,307 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="default">
+    <physics type="ode">
+      <gravity>0 0 -9.81</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>20</iters>
+          <sor>1.0</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100.0</contact_max_correcting_vel>
+          <contact_surface_layer>0.0</contact_surface_layer>
+        </constraints>
+      </ode>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+    </physics>
+    <light type="directional" name="light1">
+      <cast_shadows>true</cast_shadows>
+      <pose>-2 0 4 0 0 0</pose>
+      <diffuse>1.0 1.0 1.0 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>20</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>0.2 0.0 -1.0</direction>
+    </light>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!-- A table -->
+    <include>
+      <uri>model://table_0m8</uri>
+      <name>table_black</name>
+      <pose>0.88 -2.0 0 0 0 0</pose>
+    </include>
+    <!-- A table -->
+    <include>
+      <uri>model://table_0m8</uri>
+      <name>table_white</name>
+      <pose>0.88 0 0 0 0 0</pose>
+    </include>
+    <!-- A table -->
+    <include>
+      <uri>model://table_0m8</uri>
+      <name>table_color</name>
+      <pose>0.88 2.0 0 0 0 0</pose>
+    </include>
+    <!-- A table -->
+    <include>
+      <uri>model://table_0m8</uri>
+      <name>table_unsorted</name>
+      <pose>-1.88 0 0 0 0 0</pose>
+    </include>
+    <!-- Cube with ArUco markers on the sides -->
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_black1</name>
+      <pose>0.53 -2.0 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_white1</name>
+      <pose>0.53 -0.05 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_color1</name>
+      <pose>0.53 2.0 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_black2</name>
+      <pose>-1.53 -0.05 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_white2</name>
+      <pose>-1.53 0.25 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_color2</name>
+      <pose>-1.73 -0.05 1.2 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://aruco_cube</uri>
+      <name>aruco_color3</name>
+      <pose>-1.53 -0.35 1.2 0 0 0</pose>
+    </include>
+
+    <gui fullscreen="0">
+      <camera name="user_camera">
+        <pose>1.152670 -0.041479 3.496780 0.000000 1.123640 3.132190</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+    <!-- the room -->
+    <model name="wall_front_model">
+      <pose>3.0 0.0 1.0 0.0 0.0 1.57</pose>
+      <static>1</static>
+      <link name="wall_front_body">
+        <inertial>
+          <mass>1.000000</mass>
+          <inertia>
+            <ixx>1.000000</ixx>
+            <ixy>0.000000</ixy>
+            <ixz>0.000000</ixz>
+            <iyy>1.000000</iyy>
+            <iyz>0.000000</iyz>
+            <izz>1.000000</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <bounce />
+            <friction>
+              <ode />
+            </friction>
+            <contact>
+              <ode />
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+        </visual>
+        <velocity_decay>
+          <linear>0.000000</linear>
+          <angular>0.000000</angular>
+        </velocity_decay>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+    </model>
+    <model name="wall_back_model">
+      <pose>-3.0 0.0 1.0 0.0 0.0 1.57</pose>
+      <static>1</static>
+      <link name="wall_back_body">
+        <inertial>
+          <mass>1.000000</mass>
+          <inertia>
+            <ixx>1.000000</ixx>
+            <ixy>0.000000</ixy>
+            <ixz>0.000000</ixz>
+            <iyy>1.000000</iyy>
+            <iyz>0.000000</iyz>
+            <izz>1.000000</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <bounce />
+            <friction>
+              <ode />
+            </friction>
+            <contact>
+              <ode />
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+        </visual>
+        <velocity_decay>
+          <linear>0.000000</linear>
+          <angular>0.000000</angular>
+        </velocity_decay>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+    </model>
+    <model name="wall_left_model">
+      <pose>0.0 -5.2 1.0 0.0 0.0 0.0</pose>
+      <static>1</static>
+      <link name="wall_left_body">
+        <inertial>
+          <mass>1.000000</mass>
+          <inertia>
+            <ixx>1.000000</ixx>
+            <ixy>0.000000</ixy>
+            <ixz>0.000000</ixz>
+            <iyy>1.000000</iyy>
+            <iyz>0.000000</iyz>
+            <izz>1.000000</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <bounce />
+            <friction>
+              <ode />
+            </friction>
+            <contact>
+              <ode />
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+        </visual>
+        <velocity_decay>
+          <linear>0.000000</linear>
+          <angular>0.000000</angular>
+        </velocity_decay>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+    </model>
+    <model name="wall_right_model">
+      <pose>0.0 5.2 1.0 0.0 0.0 0.0</pose>
+      <static>1</static>
+      <link name="wall_right_body">
+        <inertial>
+          <mass>1.000000</mass>
+          <inertia>
+            <ixx>1.000000</ixx>
+            <ixy>0.000000</ixy>
+            <ixz>0.000000</ixz>
+            <iyy>1.000000</iyy>
+            <iyz>0.000000</iyz>
+            <izz>1.000000</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <bounce />
+            <friction>
+              <ode />
+            </friction>
+            <contact>
+              <ode />
+            </contact>
+          </surface>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>10.000000 0.200000 2.000000</size>
+            </box>
+          </geometry>
+        </visual>
+        <velocity_decay>
+          <linear>0.000000</linear>
+          <angular>0.000000</angular>
+        </velocity_decay>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+    </model>
+  </world>
+</sdf>

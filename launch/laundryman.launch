@@ -13,7 +13,7 @@
   <arg name="gzpose" default="-x 0.0 -y 0.0 -z 0.0 -R 0.0 -P 0.0 -Y 0.0"/>
   <arg name="gui" default="true"/>
   <arg name="debug" default="false"/>
-  <arg name="public_sim" default="false"/>
+  <arg name="public_sim" default="true"/>
   <arg name="tuck_arm" default="true"/>
   <arg name="recording" default="false"/>
   <arg name="extra_gazebo_args" default=""/>
@@ -23,13 +23,16 @@
   <env name="LC_NUMERIC" value="C" />
 
   <!-- start up world -->
- <include file="$(find gazebo_ros)/launch/empty_world.launch">
+  <env name="GAZEBO_MODEL_PATH" value="$(find laundry_dude_simulation)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="$(find laundry_dude_simulation)/world:$(optenv GAZEBO_RESOURCE_PATH)"/>
 
-    <arg name="world_name" value="$(find laundryman)/world/test.world"/>
-
-    <!-- more default parameters can be changed here -->
-
-  </include>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- world_name is relative to directories in GAZEBO_RESOURCE_PATH-->
+    <arg name="world_name" value="laundry.world"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="recording" value="$(arg recording)"/>
+  </include>
 
 
   <!-- spawn robot in simulation -->
