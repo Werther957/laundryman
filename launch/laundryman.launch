@@ -3,7 +3,7 @@
  <arg name="world"  default="empty"/>  <!-- empty, ... (see ../worlds) -->
   <!--deprecated argument, you should specify the parameters below-->
   <!-- They are described in tiago.urdf.xacro -->
-  <arg name="robot"  default="titanium"/>
+  <arg name="robot"  default="steel"/>
   <arg name="arm"  default="$(eval {'iron': False}.get(arg('robot'), True))"/>
   <arg name="end_effector"  default="$(eval {'iron': 'false', 'steel': 'pal-gripper', 'titanium': 'pal-hey5'}.get(arg('robot'), 'pal-gripper'))"/>
   <arg name="ft_sensor"  default="$(eval {'titanium': 'schunk-ft'}.get(arg('robot'), 'false'))"/>
@@ -23,8 +23,8 @@
   <env name="LC_NUMERIC" value="C" />
 
   <!-- start up world -->
-  <env name="GAZEBO_MODEL_PATH" value="$(find laundry_dude_simulation)/models:$(optenv GAZEBO_MODEL_PATH)"/>
-  <env name="GAZEBO_RESOURCE_PATH" value="$(find laundry_dude_simulation)/world:$(optenv GAZEBO_RESOURCE_PATH)"/>
+  <env name="GAZEBO_MODEL_PATH" value="$(find laundryman)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="$(find laundryman)/world:$(optenv GAZEBO_RESOURCE_PATH)"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <!-- world_name is relative to directories in GAZEBO_RESOURCE_PATH-->
