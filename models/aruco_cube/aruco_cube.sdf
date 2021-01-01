@@ -46,7 +46,7 @@
         <pose>0 0 0 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>package://aruco_cube/meshes/aruco_cube_5cm.dae</uri>
+            <uri>model://aruco_cube/meshes/aruco_cube_5cm.dae</uri>
 	    <scale> 1 1 2 </scale>
           </mesh>
         </geometry>
@@ -62,3 +62,4 @@
     </link>
   </model>
 </sdf>
+ 
