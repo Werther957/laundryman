@@ -9,18 +9,27 @@ add_compile_options(-std=c++11)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   std_msgs
   geometry_msgs
   move_base_msgs
   trajectory_msgs
   actionlib
   moveit_msgs
+  image_transport
+  pal_detection_msgs
+  cv_bridge
   moveit_ros_planning_interface
 )
 
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(OpenCV COMPONENTS opencv_highgui opencv_features2d opencv_xfeatures2d opencv_calib3d)
+if(NOT OPENCV_FOUND)
+	find_package(OpenCV REQUIRED COMPONENTS opencv_highgui opencv_features2d opencv_calib3d)
+	add_definitions(-DNO_CV_XFEATURES2D)
+endif()
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -110,8 +119,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES LaundryMan
-#  CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation
 )
 
 ###########
@@ -123,6 +131,11 @@ catkin_package(
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+)
+include_directories(include)
+include_directories(SYSTEM
+  ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -149,11 +162,12 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(vision_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
  add_dependencies(motion_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(vision_node ${catkin_LIBRARIES})
+ target_link_libraries(vision_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
  target_link_libraries(motion_control_node
   ${catkin_LIBRARIES}
 )

@@ -51,7 +51,24 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <build_export_depend>roscpp</build_export_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>pal_detection_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
   <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>pal_detection_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>image_transport</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>message_generation</exec_depend>
+  <exec_depend>image_transport_plugins</exec_depend>
+  
 
 
   <!-- The export tag contains other, unspecified, tags -->
