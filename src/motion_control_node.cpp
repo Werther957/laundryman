@@ -25,6 +25,10 @@ private:
 
   ros::Publisher torso_controller_pub;
   ros::Publisher head_controller_pub;
+  ros::Publisher arm_controller_pub;
+  ros::Publisher gripper_controller_pub;
+
+  std::map<std::string, trajectory_msgs::JointTrajectory> motionMap;
 
   actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac;
   // actionlib::SimpleActionClient<moveit_msgs::PickupAction> pickup_ac;
@@ -42,6 +46,12 @@ public:
         "/torso_controller/command", 1);
     head_controller_pub = nh.advertise<trajectory_msgs::JointTrajectory>(
         "/head_controller/command", 1);
+    arm_controller_pub = nh.advertise<trajectory_msgs::JointTrajectory>(
+        "/arm_controller/command", 1);
+    gripper_controller_pub = nh.advertise<trajectory_msgs::JointTrajectory>(
+        "/gripper_controller/command", 1);
+
+    loadMotions();
 
     ROS_INFO("Waiting for action server to start.");
     ac.waitForServer(); // will wait for infinite time
@@ -104,7 +114,9 @@ public:
   }
   void moveToBucket(const std_msgs::UInt32 msg) {
 
-    headUp();
+    moveHead(motionMap["head_up"]);
+    moveArm(motionMap["side_arm"]);
+    moveTorso(motionMap["torso_up"]);
     geometry_msgs::PoseStamped target_pose;
     target_pose.pose = bucket_map[msg.data].pose;
     target_pose.header.stamp = ros::Time::now();
@@ -126,60 +138,79 @@ public:
     ac.waitForResult(ros::Duration(60.0));
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
       ROS_INFO("goal reached");
-      // look down
-      torseUp();
-      headDown();
-
-      geometry_msgs::PoseStamped object_pose;
-      object_pose.header.frame_id = "base_footprint";
-      object_pose.pose.position.x = 0.53;
-      object_pose.pose.position.y = -0.25;
-      object_pose.pose.position.z = 0.9;
-      object_pose.pose.orientation.x = 0.4996018;
-      object_pose.pose.orientation.y = 0.4999998;
-      object_pose.pose.orientation.z = 0.4999998;
-      object_pose.pose.orientation.w = 0.5003982;
-      moveArmToCube(object_pose);
-
+      graspCube();
     } else {
       ROS_INFO("goal reaching failed");
     }
   }
 
-  void headDown() {
-    ROS_INFO("Moving head down");
-    trajectory_msgs::JointTrajectory jt;
-    jt.joint_names = {"head_1_joint", "head_2_joint"};
-    jt.points.resize(1);
-    jt.points[0].positions = {0.0, -0.75};
-    jt.points[0].time_from_start = ros::Duration(2.0);
+  void graspCube() {
+    // prepare
+    moveArm(motionMap["center_arm"]);
+    moveGripper(motionMap["open"]);
+    geometry_msgs::PoseStamped approach_pose;
+    approach_pose.header.frame_id = "base_footprint";
+    approach_pose.pose.position.x = 0.500;
+    approach_pose.pose.position.y = 0.000;
+    approach_pose.pose.position.z = 1.15;
+    approach_pose.pose.orientation.x = -0.5481993;
+    approach_pose.pose.orientation.y = 0.4501637;
+    approach_pose.pose.orientation.z = 0.4551655;
+    approach_pose.pose.orientation.w = 0.5381957;
+    moveArmToPose(approach_pose);
+
+    moveTorso(motionMap["torso_down"]);
+    moveGripper(motionMap["pinch"]);
+    moveTorso(motionMap["torso_up"]);
+  }
+
+  void placeCube() {
+    moveArm(motionMap["center_arm"]);
+    geometry_msgs::PoseStamped approach_pose;
+    approach_pose.header.frame_id = "base_footprint";
+    approach_pose.pose.position.x = 0.500;
+    approach_pose.pose.position.y = 0.000;
+    approach_pose.pose.position.z = 1.15;
+    approach_pose.pose.orientation.x = -0.5481993;
+    approach_pose.pose.orientation.y = 0.4501637;
+    approach_pose.pose.orientation.z = 0.4551655;
+    approach_pose.pose.orientation.w = 0.5381957;
+    moveArmToPose(approach_pose);
+
+    moveTorso(motionMap["torso_down"]);
+    moveGripper(motionMap["open"]);
+    moveTorso(motionMap["torso_up"]);
+  }
+
+  void moveHead(const trajectory_msgs::JointTrajectory &jt) {
+    ROS_INFO("Moving head");
     head_controller_pub.publish(jt);
+    jt.points.back().time_from_start.sleep();
     ROS_INFO("Done.");
   }
 
-  void headUp() {
-    ROS_INFO("Moving head up");
-    trajectory_msgs::JointTrajectory jt;
-    jt.joint_names = {"head_1_joint", "head_2_joint"};
-    jt.points.resize(1);
-    jt.points[0].positions = {0.0, 0.0};
-    jt.points[0].time_from_start = ros::Duration(2.0);
-    head_controller_pub.publish(jt);
-    ROS_INFO("Done.");
-  }
-
-  void torseUp() {
-    ROS_INFO("Moving torso up");
-    trajectory_msgs::JointTrajectory jt;
-    jt.joint_names = {"torso_lift_joint"};
-    jt.points.resize(1);
-    jt.points[0].positions = {0.34};
-    jt.points[0].time_from_start = ros::Duration(2.5);
+  void moveTorso(const trajectory_msgs::JointTrajectory &jt) {
+    ROS_INFO("Moving torso");
     torso_controller_pub.publish(jt);
+    jt.points.back().time_from_start.sleep();
     ROS_INFO("Done.");
   }
 
-  void moveArmToCube(geometry_msgs::PoseStamped object_pose) {
+  void moveArm(const trajectory_msgs::JointTrajectory &jt) {
+    ROS_INFO("move arm");
+    arm_controller_pub.publish(jt);
+    jt.points.back().time_from_start.sleep();
+    ROS_INFO("Done.");
+  }
+
+  void moveGripper(const trajectory_msgs::JointTrajectory &jt) {
+    ROS_INFO("move gripper");
+    gripper_controller_pub.publish(jt);
+    ros::Duration(3.0).sleep();
+    ROS_INFO("Done.");
+  }
+
+  void moveArmToPose(geometry_msgs::PoseStamped object_pose) {
 
     // choose your preferred planner
     ROS_INFO("Moving arm");
@@ -210,6 +241,75 @@ public:
       ROS_INFO("Error executing plan");
 
     ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
+  }
+
+  void loadMotions() {
+    ROS_INFO("Loading motions");
+
+    trajectory_msgs::JointTrajectory jt;
+    jt.joint_names = {"head_1_joint", "head_2_joint"};
+    jt.points.resize(1);
+    jt.points[0].positions = {0.0, -0.75};
+    jt.points[0].time_from_start = ros::Duration(2.0);
+    motionMap["head_down"] = jt;
+
+    jt.joint_names = {"head_1_joint", "head_2_joint"};
+    jt.points.resize(1);
+    jt.points[0].positions = {0.0, 0.0};
+    jt.points[0].time_from_start = ros::Duration(2.0);
+    motionMap["head_up"] = jt;
+
+    jt.joint_names = {"torso_lift_joint"};
+    jt.points.resize(1);
+    jt.points[0].positions = {0.34};
+    jt.points[0].time_from_start = ros::Duration(2.5);
+    motionMap["torso_up"] = jt;
+
+    jt.joint_names = {"torso_lift_joint"};
+    jt.points.resize(1);
+    jt.points[0].positions = {0.20};
+    jt.points[0].time_from_start = ros::Duration(2.5);
+    motionMap["torso_down"] = jt;
+
+    jt.points.resize(1);
+    jt.joint_names = {"arm_1_joint", "arm_2_joint", "arm_3_joint",
+                      "arm_4_joint", "arm_5_joint", "arm_6_joint",
+                      "arm_7_joint"};
+    // jt.points[0].positions = {1.47, 0.62, -0.20, 0.62, -1.74, 1.39, 0.00};
+    jt.points[0].positions = {0.59, 0.76, -1.69, 2.07, 0.56, -1.23, -2.07};
+    jt.points[0].time_from_start = ros::Duration(6);
+    motionMap["center_arm"] = jt;
+
+    jt.points.resize(1);
+    jt.joint_names = {"arm_1_joint", "arm_2_joint", "arm_3_joint",
+                      "arm_4_joint", "arm_5_joint", "arm_6_joint",
+                      "arm_7_joint"};
+    jt.points[0].positions = {0.07, 0.62, -0.20, 0.62, -1.74, 1.39, 0.00};
+    jt.points[0].time_from_start = ros::Duration(3);
+    motionMap["side_arm"] = jt;
+
+    jt.points.resize(1);
+    jt.joint_names = {"gripper_left_finger_joint",
+                      "gripper_right_finger_joint"};
+    jt.points[0].positions = {0.00, 0.0};
+    jt.points[0].time_from_start = ros::Duration(3);
+    motionMap["pinch"] = jt;
+
+    jt.points.resize(1);
+    jt.joint_names = {"gripper_left_finger_joint",
+                      "gripper_right_finger_joint"};
+    jt.points[0].positions = {0.00, 0.0};
+    jt.points[0].time_from_start = ros::Duration(0.5);
+    motionMap["pinch"] = jt;
+
+    jt.points.resize(1);
+    jt.joint_names = {"gripper_left_finger_joint",
+                      "gripper_right_finger_joint"};
+    jt.points[0].positions = {0.044, 0.044};
+    jt.points[0].time_from_start = ros::Duration(0.5);
+    motionMap["open"] = jt;
+
+    ROS_INFO("Loading motions");
   }
 
   /*
