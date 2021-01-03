@@ -30,14 +30,14 @@
     </effect>
     <effect id="Material_003-effect">
       <profile_COMMON>
-        <newparam sid="_x4_1000-0_png_001-surface">
+        <newparam sid="_x4_1000-0_png-surface">
           <surface type="2D">
-            <init_from>_x4_1000-0_png_001</init_from>
+            <init_from>_x4_1000-0_png</init_from>
           </surface>
         </newparam>
-        <newparam sid="_x4_1000-0_png_001-sampler">
+        <newparam sid="_x4_1000-0_png-sampler">
           <sampler2D>
-            <source>_x4_1000-0_png_001-surface</source>
+            <source>_x4_1000-0_png-surface</source>
           </sampler2D>
         </newparam>
         <technique sid="common">
@@ -46,7 +46,7 @@
               <color sid="emission">0 0 0 1</color>
             </emission>
             <diffuse>
-              <texture texture="_x4_1000-0_png_001-sampler" texcoord="UVMap"/>
+              <texture texture="_x4_1000-0_png-sampler" texcoord="UVMap"/>
             </diffuse>
             <index_of_refraction>
               <float sid="ior">1.45</float>
@@ -267,8 +267,8 @@
     <image id="_658_jpg" name="_658_jpg">
       <init_from>1658.jpg</init_from>
     </image>
-    <image id="_x4_1000-0_png_001" name="_x4_1000-0_png_001">
-      <init_from>4x4_1000-0.png.001.png</init_from>
+    <image id="_x4_1000-0_png" name="_x4_1000-0_png">
+      <init_from>4x4_1000-0.png</init_from>
     </image>
   </library_images>
   <library_materials>

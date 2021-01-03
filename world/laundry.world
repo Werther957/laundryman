@@ -83,31 +83,31 @@
     <include>
       <uri>model://ar_cube_2260</uri>
       <name>ar_cube_2260_unsorted</name>
-      <pose>-1.53 -0.05 1.2 0 0 3.14</pose>
+      <pose>-1.53 0.0 1.2 0 0 3.14</pose>
     </include>
 
     <include>
       <uri>model://ar_cube_2287</uri>
       <name>ar_cube_2287_unsorted</name>
-      <pose>-1.53 0.25 1.2 0 0 3.14</pose>
+      <pose>-1.53 0.30 1.2 0 0 3.14</pose>
     </include>
 
     <include>
       <uri>model://ar_cube_1658</uri>
       <name>ar_cube_1658_unsorted</name>
-      <pose>-1.73 -0.05 1.2 0 0 3.14</pose>
+      <pose>-1.73 0.00 1.2 0 0 3.14</pose>
     </include>
 
     <include>
       <uri>model://ar_cube_2497</uri>
       <name>ar_cube_2497_unsorted</name>
-      <pose>-1.53 -0.35 1.2 0 0 3.14</pose>
+      <pose>-1.53 -0.30 1.2 0 0 3.14</pose>
     </include>
 
     <include>
       <uri>model://ar_cube_2558</uri>
       <name>ar_cube_2558_unsorted</name>
-      <pose>-1.73 -0.35 1.2 0 0 3.14</pose>
+      <pose>-1.73 -0.30 1.2 0 0 3.14</pose>
     </include>
 
     <gui fullscreen="0">
