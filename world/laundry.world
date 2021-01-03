@@ -63,45 +63,51 @@
     <!-- Cube with ArUco markers on the sides -->
    
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_black1</name>
+      <uri>model://ar_cube_2260</uri>
+      <name>ar_cube_2260</name>
       <pose>0.53 -2.0 1.2 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_white1</name>
+      <uri>model://ar_cube_2312</uri>
+      <name>ar_cube_2312</name>
       <pose>0.53 -0.05 1.2 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_color1</name>
+      <uri>model://ar_cube_2290</uri>
+      <name>ar_cube_2290</name>
       <pose>0.53 2.0 1.2 0 0 0</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_black2</name>
-      <pose>-1.53 -0.05 1.2 0 0 0</pose>
+      <uri>model://ar_cube_2260</uri>
+      <name>ar_cube_2260_unsorted</name>
+      <pose>-1.53 -0.05 1.2 0 0 3.14</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_white2</name>
-      <pose>-1.53 0.25 1.2 0 0 0</pose>
+      <uri>model://ar_cube_2287</uri>
+      <name>ar_cube_2287_unsorted</name>
+      <pose>-1.53 0.25 1.2 0 0 3.14</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_color2</name>
-      <pose>-1.73 -0.05 1.2 0 0 0</pose>
+      <uri>model://ar_cube_1658</uri>
+      <name>ar_cube_1658_unsorted</name>
+      <pose>-1.73 -0.05 1.2 0 0 3.14</pose>
     </include>
 
     <include>
-      <uri>model://ar_cube</uri>
-      <name>aruco_color3</name>
-      <pose>-1.53 -0.35 1.2 0 0 0</pose>
+      <uri>model://ar_cube_2497</uri>
+      <name>ar_cube_2497_unsorted</name>
+      <pose>-1.53 -0.35 1.2 0 0 3.14</pose>
+    </include>
+
+    <include>
+      <uri>model://ar_cube_2558</uri>
+      <name>ar_cube_2558_unsorted</name>
+      <pose>-1.73 -0.35 1.2 0 0 3.14</pose>
     </include>
 
     <gui fullscreen="0">
