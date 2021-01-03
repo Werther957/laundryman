@@ -1,0 +1,12 @@
+uint8 bucketId
+uint8 action
+geometry_msgs/Pose pose
+#request constants
+uint8 MOVETOBUCKET=1
+uint8 PICKUP=2
+uint8 PUTDOWN=3
+---
+uint8 reply
+#reply constants
+uint8 SUCCESS=1
+uint8 FAIL=1

@@ -1,6 +1,7 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "laundryman/MotionService.h"
 #include "move_base_msgs/MoveBaseAction.h"
 #include "moveit_msgs/Grasp.h"
 #include "moveit_msgs/PickupAction.h"
@@ -22,6 +23,7 @@ private:
   ros::NodeHandle nh;
   ros::Publisher base_goal_pub;
   ros::Subscriber base_goal_sub;
+  ros::ServiceServer motion_service;
 
   ros::Publisher torso_controller_pub;
   ros::Publisher head_controller_pub;
@@ -50,6 +52,8 @@ public:
         "/arm_controller/command", 1);
     gripper_controller_pub = nh.advertise<trajectory_msgs::JointTrajectory>(
         "/gripper_controller/command", 1);
+    motion_service = nh.advertiseService(
+        "motion_control", &MoveControlller::motionServiceCb, this);
 
     loadMotions();
 
@@ -65,8 +69,8 @@ public:
 
     base_goal_pub =
         nh.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 10);
-    base_goal_sub = nh.subscribe("move_to_bucket", 10,
-                                 &MoveControlller::moveToBucket, this);
+    base_goal_sub = nh.subscribe<std_msgs::UInt32>(
+        "move_to_bucket", 10, &MoveControlller::moveToBucket, this);
 
     bucket_map.resize(4);
 
@@ -112,6 +116,31 @@ public:
     spinner.start();
     ros::waitForShutdown();
   }
+
+  void moveToBucket(const unsigned int bucket_id) {
+
+    moveHead(motionMap["head_up"]);
+    moveArm(motionMap["side_arm"]);
+    moveTorso(motionMap["torso_up"]);
+    geometry_msgs::PoseStamped target_pose;
+    target_pose.pose = bucket_map[bucket_id].pose;
+    target_pose.header.stamp = ros::Time::now();
+    target_pose.header.frame_id = "map";
+
+    ROS_INFO("sending goal");
+    // send a goal to the action
+    move_base_msgs::MoveBaseGoal goal;
+    goal.target_pose = target_pose;
+    ac.sendGoal(goal);
+
+    ac.waitForResult(ros::Duration(60.0));
+    if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+      ROS_INFO("goal reached");
+      moveHead(motionMap["head_down"]);
+    } else {
+      ROS_INFO("goal reaching failed");
+    }
+  }
   void moveToBucket(const std_msgs::UInt32 msg) {
 
     moveHead(motionMap["head_up"]);
@@ -144,38 +173,60 @@ public:
     }
   }
 
-  void graspCube() {
+  void graspCube(const geometry_msgs::Pose &pose_msg) {
     // prepare
     moveArm(motionMap["center_arm"]);
     moveGripper(motionMap["open"]);
     geometry_msgs::PoseStamped approach_pose;
     approach_pose.header.frame_id = "base_footprint";
-    approach_pose.pose.position.x = 0.500;
-    approach_pose.pose.position.y = 0.000;
-    approach_pose.pose.position.z = 1.15;
-    approach_pose.pose.orientation.x = -0.5481993;
-    approach_pose.pose.orientation.y = 0.4501637;
-    approach_pose.pose.orientation.z = 0.4551655;
-    approach_pose.pose.orientation.w = 0.5381957;
+    approach_pose.pose.position.x = pose_msg.position.x;
+    approach_pose.pose.position.y = pose_msg.position.y;
+    approach_pose.pose.position.z = pose_msg.position.z + 0.10;
+    approach_pose.pose.orientation.x = pose_msg.orientation.x;
+    approach_pose.pose.orientation.y = pose_msg.orientation.y;
+    approach_pose.pose.orientation.z = pose_msg.orientation.z;
+    approach_pose.pose.orientation.w = pose_msg.orientation.w;
     moveArmToPose(approach_pose);
+
+    geometry_msgs::PoseStamped grasp_pose;
+    grasp_pose.header.frame_id = "base_footprint";
+    grasp_pose.pose.position.x = pose_msg.position.x;
+    grasp_pose.pose.position.y = pose_msg.position.y;
+    grasp_pose.pose.position.z = pose_msg.position.z;
+    grasp_pose.pose.orientation.x = pose_msg.orientation.x;
+    grasp_pose.pose.orientation.y = pose_msg.orientation.y;
+    grasp_pose.pose.orientation.z = pose_msg.orientation.z;
+    grasp_pose.pose.orientation.w = pose_msg.orientation.w;
+    moveArmToPose(grasp_pose);
 
     moveTorso(motionMap["torso_down"]);
     moveGripper(motionMap["pinch"]);
     moveTorso(motionMap["torso_up"]);
   }
 
-  void placeCube() {
+  void placeCube(const geometry_msgs::Pose &pose_msg) {
     moveArm(motionMap["center_arm"]);
     geometry_msgs::PoseStamped approach_pose;
     approach_pose.header.frame_id = "base_footprint";
-    approach_pose.pose.position.x = 0.500;
-    approach_pose.pose.position.y = 0.000;
-    approach_pose.pose.position.z = 1.15;
-    approach_pose.pose.orientation.x = -0.5481993;
-    approach_pose.pose.orientation.y = 0.4501637;
-    approach_pose.pose.orientation.z = 0.4551655;
-    approach_pose.pose.orientation.w = 0.5381957;
+    approach_pose.pose.position.x = pose_msg.position.x;
+    approach_pose.pose.position.y = pose_msg.position.y;
+    approach_pose.pose.position.z = pose_msg.position.z + 0.10;
+    approach_pose.pose.orientation.x = pose_msg.orientation.x;
+    approach_pose.pose.orientation.y = pose_msg.orientation.y;
+    approach_pose.pose.orientation.z = pose_msg.orientation.z;
+    approach_pose.pose.orientation.w = pose_msg.orientation.w;
     moveArmToPose(approach_pose);
+
+    geometry_msgs::PoseStamped grasp_pose;
+    grasp_pose.header.frame_id = "base_footprint";
+    grasp_pose.pose.position.x = pose_msg.position.x;
+    grasp_pose.pose.position.y = pose_msg.position.y;
+    grasp_pose.pose.position.z = pose_msg.position.z;
+    grasp_pose.pose.orientation.x = pose_msg.orientation.x;
+    grasp_pose.pose.orientation.y = pose_msg.orientation.y;
+    grasp_pose.pose.orientation.z = pose_msg.orientation.z;
+    grasp_pose.pose.orientation.w = pose_msg.orientation.w;
+    moveArmToPose(grasp_pose);
 
     moveTorso(motionMap["torso_down"]);
     moveGripper(motionMap["open"]);
@@ -243,13 +294,37 @@ public:
     ROS_INFO_STREAM("Motion duration: " << (ros::Time::now() - start).toSec());
   }
 
+  bool motionServiceCb(laundryman::MotionService::Request &req,
+                       laundryman::MotionService::Response &res) {
+    switch (req.action) {
+    case laundryman::MotionService::Request::MOVETOBUCKET:
+      moveToBucket(req.bucketId);
+      res.reply = laundryman::MotionService::Response::SUCCESS;
+      break;
+    case laundryman::MotionService::Request::PICKUP:
+      graspCube(req.pose);
+      res.reply = laundryman::MotionService::Response::SUCCESS;
+      break;
+    case laundryman::MotionService::Request::PUTDOWN:
+      placeCube(req.pose);
+      res.reply = laundryman::MotionService::Response::SUCCESS;
+      break;
+    default:
+      ROS_INFO("invalid motion request");
+      res.reply = laundryman::MotionService::Response::FAIL;
+      break;
+    }
+
+    return true;
+  }
+
   void loadMotions() {
     ROS_INFO("Loading motions");
 
     trajectory_msgs::JointTrajectory jt;
     jt.joint_names = {"head_1_joint", "head_2_joint"};
     jt.points.resize(1);
-    jt.points[0].positions = {0.0, -0.75};
+    jt.points[0].positions = {0.0, -0.95};
     jt.points[0].time_from_start = ros::Duration(2.0);
     motionMap["head_down"] = jt;
 
@@ -261,13 +336,13 @@ public:
 
     jt.joint_names = {"torso_lift_joint"};
     jt.points.resize(1);
-    jt.points[0].positions = {0.34};
+    jt.points[0].positions = {0.35};
     jt.points[0].time_from_start = ros::Duration(2.5);
     motionMap["torso_up"] = jt;
 
     jt.joint_names = {"torso_lift_joint"};
     jt.points.resize(1);
-    jt.points[0].positions = {0.20};
+    jt.points[0].positions = {0.28};
     jt.points[0].time_from_start = ros::Duration(2.5);
     motionMap["torso_down"] = jt;
 

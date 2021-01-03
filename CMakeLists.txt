@@ -68,11 +68,10 @@ endif()
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  MotionService.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -82,10 +81,11 @@ endif()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs  # Or other packages containing msgs
+  geometry_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -119,7 +119,7 @@ endif()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES LaundryMan
-  CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation
+#  CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation message_runtime
 )
 
 ###########
