@@ -104,15 +104,18 @@ void vision_node::imageCB(const sensor_msgs::ImageConstPtr& msg)
 //handle images here
 void vision_node::ImageProcessing()
 {
+	// Aruco marker recognition, detect the location of the target object
+	// find the nearby cloth image, classify if it is apparel, if so, sent the information to the action node.
 	if(i!=0)
 	{	
 
-		cv::imshow(win1, img_bgr);
+	cv::imshow(win1, img_bgr);
 
     cv::Mat graymat;
     cv::cvtColor(img_bgr, graymat, cv::COLOR_BGR2GRAY);
 
     cv::imshow(win2, graymat);
+
 
 	}
 	++i;
