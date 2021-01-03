@@ -138,7 +138,7 @@ public:
     ac.waitForResult(ros::Duration(60.0));
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
       ROS_INFO("goal reached");
-      graspCube();
+      // graspCube();
     } else {
       ROS_INFO("goal reaching failed");
     }
