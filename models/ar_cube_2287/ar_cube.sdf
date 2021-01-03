@@ -17,7 +17,7 @@
         <collision name='collision'>
           <geometry>
             <mesh>
-              <uri>model://ar_cube/meshes/2287.dae</uri>
+              <uri>model://ar_cube_2287/meshes/2287.dae</uri>
 	          <scale> 0.025 0.025 0.025 </scale>
             </mesh>
           </geometry>
@@ -41,7 +41,7 @@
         <visual name='visual'>
           <geometry>
           <mesh>
-            <uri>model://ar_cube/meshes/2287.dae</uri>
+            <uri>model://ar_cube_2287/meshes/2287.dae</uri>
 	        <scale> 0.025 0.025 0.025 </scale>
           </mesh>
           </geometry>
