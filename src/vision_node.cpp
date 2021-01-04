@@ -112,8 +112,8 @@ void vision_node::Classfier(cv::Mat &image){
     img_tensor = img_tensor.toType(torch::kFloat); // Change data types
     img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
 
-    std::shared_ptr<torch::jit::script::Module> module = torch::jit::load("clothNet.pt"); //clothNet.pt is Torch Script via tracing. Load the torchscript model
-	torch::Tensor output = module->forward({img_tensor}).toTensor(); //In python the output is a dict of two keys 'color' 'category', in which is the score of each class, and the index of max score is the predicted class.
+    torch::jit::script::Module module = torch::jit::load("clothNet.pt"); //clothNet.pt is Torch Script via tracing. Load the torchscript model
+	torch::Tensor output = module.forward({img_tensor}).toTensor(); //In python the output is a dict of two keys 'color' 'category', in which is the score of each class, and the index of max score is the predicted class.
     // The following needs testing is output a map?dict? In general, output1 is category, output2 is color
 	std::cout << output << std::endl;
 	//auto max_result = output.max(1, true);
@@ -136,6 +136,8 @@ void vision_node::ImageProcessing()
     cv::cvtColor(img_bgr, graymat, cv::COLOR_BGR2GRAY);
 
     cv::imshow(win2, graymat);
+
+	// aruco marker detection
 
 	// process the cloth image to the size 80x60x3 (Convert OpenCV default BGR to Torch RGB)
 

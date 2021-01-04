@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(laundryman)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+## deleted- Compile as C++11, supported in ROS Kinetic and newer
+## Compile as C++14, Pytorch requires C++14 or newer version
+add_compile_options(-std=c++14)
 
 # curl libtorch.zip and unzip it in the laundryman https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.7.1%2Bcpu.zip 
 set(Torch_DIR ../laundryman/libtorch/share/cmake/Torch)
@@ -28,11 +29,12 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(OpenCV COMPONENTS opencv_highgui opencv_features2d opencv_xfeatures2d opencv_calib3d)
-if(NOT OPENCV_FOUND)
-	find_package(OpenCV REQUIRED COMPONENTS opencv_highgui opencv_features2d opencv_calib3d)
-	add_definitions(-DNO_CV_XFEATURES2D)
-endif()
+#find_package(OpenCV COMPONENTS opencv_highgui opencv_features2d opencv_xfeatures2d opencv_calib3d)
+#if(NOT OPENCV_FOUND)
+#	find_package(OpenCV REQUIRED COMPONENTS opencv_highgui opencv_features2d opencv_calib3d)
+#	add_definitions(-DNO_CV_XFEATURES2D)
+#endif()
+find_package(OpenCV)
 find_package(Torch REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
