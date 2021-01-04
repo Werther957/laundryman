@@ -4,6 +4,9 @@ project(laundryman)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
+# curl libtorch.zip and unzip it in the laundryman https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.7.1%2Bcpu.zip 
+set(Torch_DIR ../laundryman/libtorch/share/cmake/Torch)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -30,6 +33,7 @@ if(NOT OPENCV_FOUND)
 	find_package(OpenCV REQUIRED COMPONENTS opencv_highgui opencv_features2d opencv_calib3d)
 	add_definitions(-DNO_CV_XFEATURES2D)
 endif()
+find_package(Torch REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -167,7 +171,7 @@ include_directories(SYSTEM
  add_dependencies(motion_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(vision_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+ target_link_libraries(vision_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
  target_link_libraries(motion_control_node
   ${catkin_LIBRARIES}
 )
