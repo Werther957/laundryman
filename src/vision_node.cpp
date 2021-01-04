@@ -51,6 +51,9 @@
 #include <torch/torch.h>
 #include <torch/script.h>
 
+//marker
+#include <geometry_msgs/PoseStamped.h>
+
 class vision_node
 {
 public:
@@ -58,6 +61,7 @@ public:
 	~vision_node();
 	image_transport::ImageTransport _imageTransport;
 	image_transport::Subscriber image_sub;
+	
 
 protected:
 	void imageCB(const sensor_msgs::ImageConstPtr& msg);
@@ -75,6 +79,7 @@ const std::string win2 = "Threshold Difference";
 vision_node::vision_node(ros::NodeHandle nh_): _imageTransport(nh_)
 {
 	image_sub = _imageTransport.subscribe("xtion/rgb/image_raw", 1, &vision_node::imageCB, this, image_transport::TransportHints("compressed"));
+        
 	cv::namedWindow(win1, CV_WINDOW_FREERATIO);
 	cv::namedWindow(win2, CV_WINDOW_FREERATIO);
 	i=0;
@@ -104,6 +109,9 @@ void vision_node::imageCB(const sensor_msgs::ImageConstPtr& msg)
 
 
 }
+
+
+
 
 void vision_node::Classfier(cv::Mat &image){
 	//https://pytorch.org/tutorials/advanced/cpp_export.html
@@ -143,7 +151,7 @@ void vision_node::ImageProcessing()
 
 
 	// classify the category and color of the image
-	vision_node::Classfier(image_cloth);
+	//vision_node::Classfier(image_cloth);
 
 	}
 	++i;
@@ -152,12 +160,26 @@ void vision_node::ImageProcessing()
 
 
 
+//
+void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
+    std::cout << "Position x: " << msg->pose.position.x << std::endl;
+    std::cout << "Position y: " << msg->pose.position.y << std::endl;
+    std::cout << "Position z: " << msg->pose.position.z << std::endl;
+
+    std::cout << "Orientation x: " << msg->pose.orientation.x << std::endl;
+    std::cout << "Orientation y: " << msg->pose.orientation.y << std::endl;
+    std::cout << "Orientation z: " << msg->pose.orientation.z << std::endl;
+}
+
+
 
 int main(int argc, char** argv)
 {
 	ros::init(argc, argv, "vision_node");
 	ros::NodeHandle nh;
 	vision_node ts(nh);
+	//suscribe aruco marker from aruco ros
+    ros::Subscriber sub = nh.subscribe("/aruco_single/pose", 1000, pose_callback);
 	ros::spin();
 }
 

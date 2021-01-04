@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  aruco_ros
   geometry_msgs
   move_base_msgs
   trajectory_msgs
@@ -90,6 +91,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
+  actionlib_msgs
   geometry_msgs
 )
 
@@ -125,7 +127,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES LaundryMan
-#  CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation message_runtime
+   CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation message_runtime
 )
 
 ###########
