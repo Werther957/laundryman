@@ -47,6 +47,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+// Libtorch headers
+#include <torch/torch.h>
+#include <torch/script.h>
+
 class vision_node
 {
 public:
@@ -58,6 +62,7 @@ public:
 protected:
 	void imageCB(const sensor_msgs::ImageConstPtr& msg);
 	void ImageProcessing();
+	void Classfier(cv::Mat &image);
 
 private:
 	cv::Mat img_bgr, img1, img2, thresh, diff;
@@ -100,6 +105,22 @@ void vision_node::imageCB(const sensor_msgs::ImageConstPtr& msg)
 
 }
 
+void vision_node::Classfier(cv::Mat &image){
+	//https://pytorch.org/tutorials/advanced/cpp_export.html
+    torch::Tensor img_tensor = torch::from_blob(image.data, {1, image.rows, image.cols, 3}, torch::kByte); //Convert Mat to Tensor
+    img_tensor = img_tensor.permute({0, 3, 1, 2}); //Required by pytorch [C,H,W]. OpenCV is [H,W,C]. output size [1,3,80,60]
+    img_tensor = img_tensor.toType(torch::kFloat); // Change data types
+    img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
+
+    std::shared_ptr<torch::jit::script::Module> module = torch::jit::load("clothNet.pt"); //clothNet.pt is Torch Script via tracing. Load the torchscript model
+	torch::Tensor output = module->forward({img_tensor}).toTensor(); //In python the output is a dict of two keys 'color' 'category', in which is the score of each class, and the index of max score is the predicted class.
+    // The following needs testing is output a map?dict? In general, output1 is category, output2 is color
+	std::cout << output << std::endl;
+	//auto max_result = output.max(1, true);
+    //auto max_index = std::get<1>(max_result).item<float>();
+    //std::cout << max_index << std::endl;
+
+}
 
 //handle images here
 void vision_node::ImageProcessing()
@@ -116,6 +137,11 @@ void vision_node::ImageProcessing()
 
     cv::imshow(win2, graymat);
 
+	// process the cloth image to the size 80x60x3 (Convert OpenCV default BGR to Torch RGB)
+
+
+	// classify the category and color of the image
+	vision_node::Classfier(image_cloth);
 
 	}
 	++i;
