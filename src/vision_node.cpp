@@ -206,20 +206,34 @@ void vision_node::imageCB(const sensor_msgs::ImageConstPtr& msg)
 
 
 void vision_node::Classfier(cv::Mat &image){
-	//https://pytorch.org/tutorials/advanced/cpp_export.html
-    torch::Tensor img_tensor = torch::from_blob(image.data, {1, image.rows, image.cols, 3}, torch::kByte); //Convert Mat to Tensor
-    img_tensor = img_tensor.permute({0, 3, 1, 2}); //Required by pytorch [C,H,W]. OpenCV is [H,W,C]. output size [1,3,80,60]
-    img_tensor = img_tensor.toType(torch::kFloat); // Change data types
+	/*Input
+        image       --  homography camera image of cloth
+        module      --  loaded tracing model
+      Output
+        color_id    --  infered most likely color. Look up in the colorName_id table.
+        category_id --  infered most likely category. Look up in the categoryName_id table. 
+    */
+    cv::cvtColor(image, image, CV_BGR2RGB);
+    cv::resize(image, image, cv::Size(80, 60)); // the trainingset is sized 80x60
+
+    torch::Tensor img_tensor = torch::from_blob(image.data, {1, image.rows, image.cols, 3}, torch::kByte); // Convert Mat to Tensor
+    img_tensor = img_tensor.permute({0, 3, 1, 2}); // Required by pytorch [C,H,W]. OpenCV is [H,W,C]. output size [1,3,80,60]
+    img_tensor = img_tensor.toType(torch::kFloat);               // Change data types kFloat is torch.float64
     img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
 
-    torch::jit::script::Module module = torch::jit::load("clothNet.pt"); //clothNet.pt is Torch Script via tracing. Load the torchscript model
-	torch::Tensor output = module.forward({img_tensor}).toTensor(); //In python the output is a dict of two keys 'color' 'category', in which is the score of each class, and the index of max score is the predicted class.
-    // The following needs testing is output a map?dict? In general, output1 is category, output2 is color
-	std::cout << output << std::endl;
-	//auto max_result = output.max(1, true);
-    //auto max_index = std::get<1>(max_result).item<float>();
-    //std::cout << max_index << std::endl;
-
+    // clothNet.pt is Torch Script via tracing. Load the torchscript model
+    torch::jit::script::Module module = torch::jit::load("/home/user/catkin_ws/src/laundryman/src/clothNet.pt"); 
+    // std::cout << "Inference model loaded successfully" << std::endl;
+    auto output = module.forward({img_tensor}); 
+    auto opt_dict = output.toGenericDict(); // genericDict
+    auto color_score = opt_dict.at("color");
+    //std::cout << color_score << std::endl; // CPUFloatType
+    auto category_score = opt_dict.at("category");
+    //std::cout << category_score << std::endl;
+    std::tuple<torch::Tensor, torch::Tensor> max_classes_color = torch::max(color_score.toTensor(), 1); 
+    std::tuple<torch::Tensor, torch::Tensor> max_classes_category = torch::max(category_score.toTensor(), 1);
+    auto color_id = std::get<1>(max_classes_color); // CPULongType
+    auto category_id = std::get<1>(max_classes_category);
 }
 
 //handle images here

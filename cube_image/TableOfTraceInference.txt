@@ -1,11 +1,11 @@
-id	trueLabel	traceLabel
-2260	Black	Grey
-2290	Pink	Pink
-2312	White	White
-1658	Blue	Blue
-2287	White	White
-2497	Black	Brown	Footwear
-2558	Black	Grey
+id	trueLabel	teLabelPy	teLabelCPP	BGR2RGB
+2260	Black	Grey	White Acc	White Acc
+2290	Pink	Pink	Purple
+2312	White	White	White
+1658	Blue	Blue	Steel
+2287	White	White	Gold	White Acc
+2497	Black	Brown	--		Footwear
+2558	Black	Grey	Cream
 解决办法：
 Grey、Brown在ontology里也为Black(建议换名字为Darks)
 1163	Blue	Blue
