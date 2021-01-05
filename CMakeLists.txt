@@ -25,6 +25,11 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   moveit_ros_planning_interface
   tf2
+  aruco
+  aruco_msgs
+  sensor_msgs
+  visualization_msgs
+  sensor_msgs
 )
 
 
@@ -157,6 +162,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(vision_node src/vision_node.cpp)
  add_executable(motion_control_node src/motion_control_node.cpp)
+ add_executable(aruco_node src/aruco_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -170,10 +176,16 @@ include_directories(
 
  add_dependencies(motion_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+ add_dependencies(aruco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries to link a library or executable target against
  target_link_libraries(vision_node ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES} ${catkin_LIBRARIES})
  target_link_libraries(motion_control_node
   ${catkin_LIBRARIES}
+)
+ target_link_libraries(aruco_node
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
 )
 
 

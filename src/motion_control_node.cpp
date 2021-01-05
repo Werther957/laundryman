@@ -102,7 +102,7 @@ public:
     bucket_map[2].pose.orientation.w = 1.0;
 
     bucket_map[3].bucket_id = 3;
-    bucket_map[3].pose.position.x = -1.1;
+    bucket_map[3].pose.position.x = -1.0;
     bucket_map[3].pose.position.y = 0.0;
     bucket_map[3].pose.position.z = 0.0;
     bucket_map[3].pose.orientation.x = 0.0;

@@ -69,7 +69,6 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>message_generation</exec_depend>
   <exec_depend>message_runtime</exec_depend>
-  <exec_depend>image_transport_plugins</exec_depend>
   <exec_depend>aruco_ros</exec_depend>
   
 
