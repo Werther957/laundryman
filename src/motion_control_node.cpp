@@ -175,60 +175,56 @@ public:
 
   void graspCube(const geometry_msgs::Pose &pose_msg) {
     // prepare
-    moveArm(motionMap["center_arm"]);
+    moveArm(motionMap["side_arm"]);
     moveGripper(motionMap["open"]);
     geometry_msgs::PoseStamped approach_pose;
     approach_pose.header.frame_id = "base_footprint";
     approach_pose.pose.position.x = pose_msg.position.x;
     approach_pose.pose.position.y = pose_msg.position.y;
-    approach_pose.pose.position.z = pose_msg.position.z + 0.10;
-    approach_pose.pose.orientation.x = pose_msg.orientation.x;
-    approach_pose.pose.orientation.y = pose_msg.orientation.y;
-    approach_pose.pose.orientation.z = pose_msg.orientation.z;
-    approach_pose.pose.orientation.w = pose_msg.orientation.w;
+    approach_pose.pose.position.z = pose_msg.position.z + 0.40;
+    approach_pose.pose.orientation.x = -0.5481993;
+    approach_pose.pose.orientation.y = 0.4501637;
+    approach_pose.pose.orientation.z = 0.4551655;
+    approach_pose.pose.orientation.w = 0.5381957;
     moveArmToPose(approach_pose);
 
     geometry_msgs::PoseStamped grasp_pose;
     grasp_pose.header.frame_id = "base_footprint";
     grasp_pose.pose.position.x = pose_msg.position.x;
     grasp_pose.pose.position.y = pose_msg.position.y;
-    grasp_pose.pose.position.z = pose_msg.position.z;
-    grasp_pose.pose.orientation.x = pose_msg.orientation.x;
-    grasp_pose.pose.orientation.y = pose_msg.orientation.y;
-    grasp_pose.pose.orientation.z = pose_msg.orientation.z;
-    grasp_pose.pose.orientation.w = pose_msg.orientation.w;
+    grasp_pose.pose.position.z = pose_msg.position.z + 0.20;
+
+    calculateGraspPose(pose_msg, grasp_pose.pose);
     moveArmToPose(grasp_pose);
 
-    moveTorso(motionMap["torso_down"]);
+    // moveTorso(motionMap["torso_down"]);
     moveGripper(motionMap["pinch"]);
     moveTorso(motionMap["torso_up"]);
   }
 
   void placeCube(const geometry_msgs::Pose &pose_msg) {
-    moveArm(motionMap["center_arm"]);
+    moveArm(motionMap["side_arm"]);
     geometry_msgs::PoseStamped approach_pose;
     approach_pose.header.frame_id = "base_footprint";
     approach_pose.pose.position.x = pose_msg.position.x;
     approach_pose.pose.position.y = pose_msg.position.y;
-    approach_pose.pose.position.z = pose_msg.position.z + 0.10;
-    approach_pose.pose.orientation.x = pose_msg.orientation.x;
-    approach_pose.pose.orientation.y = pose_msg.orientation.y;
-    approach_pose.pose.orientation.z = pose_msg.orientation.z;
-    approach_pose.pose.orientation.w = pose_msg.orientation.w;
+    approach_pose.pose.position.z = pose_msg.position.z + 0.40;
+    approach_pose.pose.orientation.x = -0.5481993;
+    approach_pose.pose.orientation.y = 0.4501637;
+    approach_pose.pose.orientation.z = 0.4551655;
+    approach_pose.pose.orientation.w = 0.5381957;
     moveArmToPose(approach_pose);
 
     geometry_msgs::PoseStamped grasp_pose;
     grasp_pose.header.frame_id = "base_footprint";
     grasp_pose.pose.position.x = pose_msg.position.x;
     grasp_pose.pose.position.y = pose_msg.position.y;
-    grasp_pose.pose.position.z = pose_msg.position.z;
-    grasp_pose.pose.orientation.x = pose_msg.orientation.x;
-    grasp_pose.pose.orientation.y = pose_msg.orientation.y;
-    grasp_pose.pose.orientation.z = pose_msg.orientation.z;
-    grasp_pose.pose.orientation.w = pose_msg.orientation.w;
+    grasp_pose.pose.position.z = pose_msg.position.z + 0.20;
+
+    calculateGraspPose(pose_msg, grasp_pose.pose);
     moveArmToPose(grasp_pose);
 
-    moveTorso(motionMap["torso_down"]);
+    // moveTorso(motionMap["torso_down"]);
     moveGripper(motionMap["open"]);
     moveTorso(motionMap["torso_up"]);
   }
@@ -385,6 +381,18 @@ public:
     motionMap["open"] = jt;
 
     ROS_INFO("Loading motions");
+  }
+
+  void calculateGraspPose(const geometry_msgs::Pose &pose_in,
+                          geometry_msgs::Pose &pose_out) {
+    tf2::Quaternion q_in(pose_in.orientation.x, pose_in.orientation.y,
+                         pose_in.orientation.z, pose_in.orientation.w);
+    tf2::Quaternion q_rot(-0.4996018, -0.4999998, 0.4999998, 0.5003982);
+    tf2::Quaternion q_out = q_in.inverse() * q_rot * q_in;
+    pose_out.orientation.x = q_out.x();
+    pose_out.orientation.y = q_out.y();
+    pose_out.orientation.z = q_out.z();
+    pose_out.orientation.w = q_out.w();
   }
 
   /*

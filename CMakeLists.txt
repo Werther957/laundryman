@@ -13,7 +13,6 @@ set(Torch_DIR ../laundryman/libtorch/share/cmake/Torch)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  rospy
   std_msgs
   aruco_ros
   geometry_msgs
@@ -25,6 +24,7 @@ find_package(catkin REQUIRED COMPONENTS
   pal_detection_msgs
   cv_bridge
   moveit_ros_planning_interface
+  tf2
 )
 
 
@@ -35,7 +35,7 @@ find_package(catkin REQUIRED COMPONENTS
 #	find_package(OpenCV REQUIRED COMPONENTS opencv_highgui opencv_features2d opencv_calib3d)
 #	add_definitions(-DNO_CV_XFEATURES2D)
 #endif()
-find_package(OpenCV)
+find_package(OpenCV REQUIRED)
 find_package(Torch REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -137,11 +137,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
-include_directories(include)
-include_directories(SYSTEM
+  include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
@@ -175,7 +171,7 @@ include_directories(SYSTEM
  add_dependencies(motion_control_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(vision_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES})
+ target_link_libraries(vision_node ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES} ${catkin_LIBRARIES})
  target_link_libraries(motion_control_node
   ${catkin_LIBRARIES}
 )
