@@ -47,6 +47,9 @@ either expressed or implied, of Rafael Muñoz Salinas.
 #include <std_msgs/UInt32MultiArray.h>
 #include <tf/transform_listener.h>
 
+#include <laundryman/CubeInfo.h>
+#include <laundryman/CubeInfoList.h>
+
 class ArucoMarkerPublisher {
 private:
   // aruco stuff
@@ -69,6 +72,8 @@ private:
 
   image_transport::Publisher image_pub_;
   image_transport::Publisher debug_pub_;
+  image_transport::Publisher cube_info_debug_pub_;
+  ros::Publisher cube_info_list_pub_;
   ros::Publisher marker_pub_;
   ros::Publisher marker_list_pub_;
   tf::TransformListener tfListener_;
@@ -76,11 +81,15 @@ private:
   ros::Subscriber cam_info_sub_;
   aruco_msgs::MarkerArray::Ptr marker_msg_;
   cv::Mat inImage_;
+  cv::Mat inImageOri_;
   bool useCamInfo_;
   std_msgs::UInt32MultiArray marker_list_msg_;
+  laundryman::CubeInfoList cube_info_list_;
 
 public:
   ArucoMarkerPublisher() : nh_("~"), it_(nh_), useCamInfo_(true) {
+    cube_info_list_pub_ =
+        nh_.advertise<laundryman::CubeInfoList>("cube_info_list", 1);
     image_sub_ =
         it_.subscribe("/image", 1, &ArucoMarkerPublisher::image_callback, this);
 
@@ -105,6 +114,7 @@ public:
 
     image_pub_ = it_.advertise("result", 1);
     debug_pub_ = it_.advertise("debug", 1);
+    cube_info_debug_pub_ = it_.advertise("cube_debug", 1);
     marker_pub_ = nh_.advertise<aruco_msgs::MarkerArray>("markers", 100);
     marker_list_pub_ =
         nh_.advertise<std_msgs::UInt32MultiArray>("markers_list", 10);
@@ -183,6 +193,7 @@ public:
     try {
       cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::RGB8);
       inImage_ = cv_ptr->image;
+      inImageOri_ = cv_ptr->image;
 
       // clear out previous detection results
       markers_.clear();
@@ -241,6 +252,42 @@ public:
         marker_list_pub_.publish(marker_list_msg_);
       }
 
+      if (true) {
+        cube_info_list_.data.resize(markers_.size());
+        for (size_t i = 0; i < markers_.size(); ++i) {
+          cube_info_list_.data[i].id = marker_msg_->markers.at(i).id;
+          cube_info_list_.data[i].pose = marker_msg_->markers.at(i).pose.pose;
+
+          cv_bridge::CvImage out_msg;
+          out_msg.header.stamp = curr_stamp;
+          out_msg.encoding = sensor_msgs::image_encodings::RGB8;
+          cv::Mat imageRect;
+          reproject(inImageOri_, imageRect, cv::Size(80, 160), markers_[i]);
+          out_msg.image = imageRect(cv::Rect(0, 80, 80, 80));
+          cube_info_list_.data[i].image = *out_msg.toImageMsg();
+        }
+
+        cube_info_list_pub_.publish(cube_info_list_);
+      }
+
+      if (cube_info_list_.data.size() > 0) {
+        int rows = 80;
+        int cols = cube_info_list_.data.size() * 80;
+        cv::Mat res(rows, cols, CV_8UC3, cv::Scalar(0, 0, 0));
+
+        for (size_t i = 0; i < cube_info_list_.data.size(); ++i) {
+          cv_ptr = cv_bridge::toCvCopy(cube_info_list_.data[i].image,
+                                       sensor_msgs::image_encodings::RGB8);
+          cv::Mat image = cv_ptr->image;
+          image.copyTo(res(cv::Rect(80 * i, 0, 80, 80)));
+        }
+
+        cv_bridge::CvImage cube_info_debug_msg;
+        cube_info_debug_msg.header.stamp = curr_stamp;
+        cube_info_debug_msg.encoding = sensor_msgs::image_encodings::RGB8;
+        cube_info_debug_msg.image = res;
+        cube_info_debug_pub_.publish(cube_info_debug_msg.toImageMsg());
+      }
       // Draw detected markers on the image for visualization
       for (size_t i = 0; i < markers_.size(); ++i) {
         markers_[i].draw(inImage_, cv::Scalar(0, 0, 255), 2);
@@ -254,16 +301,16 @@ public:
 
       // publish input image with markers drawn on it
       if (publishImage) {
-        cv::Mat inImageRect;
-        if (markers_.size() > 0) {
-          reproject(inImage_, inImageRect, cv::Size(80, 160), markers_[0]);
-        }
 
         // show input with augmented information
         cv_bridge::CvImage out_msg;
         out_msg.header.stamp = curr_stamp;
         out_msg.encoding = sensor_msgs::image_encodings::RGB8;
-        out_msg.image = inImageRect;
+        cv::Mat imageRect;
+        if (markers_.size() > 0) {
+          reproject(inImageOri_, imageRect, cv::Size(80, 160), markers_[0]);
+          out_msg.image = imageRect(cv::Rect(0, 80, 80, 80));
+        }
         image_pub_.publish(out_msg.toImageMsg());
       }
 
