@@ -174,7 +174,7 @@ include_directories(
  add_executable(aruco_node src/aruco_node.cpp)
 
 
-add_executable(queries_node src/test_query.cpp)
+add_executable(query_node src/test_query.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -191,12 +191,14 @@ add_executable(queries_node src/test_query.cpp)
 
  add_dependencies(aruco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+add_dependencies(query_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries to link a library or executable target against
  target_link_libraries(vision_node ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES} ${catkin_LIBRARIES})
  target_link_libraries(motion_control_node 
   ${catkin_LIBRARIES}
 )
- target_link_libraries(queries_node 
+ target_link_libraries(query_node 
   ${catkin_LIBRARIES}
 )
 
