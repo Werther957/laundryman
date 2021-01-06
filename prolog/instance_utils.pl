@@ -39,8 +39,8 @@ of the predicates
 :- use_module(library('semweb/rdfs')).
 :- use_module(library('semweb/rdf_db')).
 
-:- rdf_db:rdf_register_ns(ssy235Ontology, 'http://www.chalmers.se/ontologies/ssy235Ontology.owl#', [keep(true)]).
-
+%:- rdf_db:rdf_register_ns(ssy235Ontology, 'http://www.chalmers.se/ontologies/ssy235Ontology.owl#', [keep(true)]).
+:- rdf_db:rdf_register_ns(ssy235Ontology, 'http://www.semanticweb.org/xm/ontologies/2020/11/ssy235Ontology.owl#', [keep(true)]).
 %%%%%%%%%%%%%% Custom computables %%%%%%%%%%%%%%%%%%%%%%
 
 % This function will create an instance of a desired class
@@ -77,7 +77,9 @@ getClassPath(Class, Class_path):-
 	( % Class has already a URI
 	   Class_path=Class );
 	  % When the class does not have URL, will get the knowrob path
-        ( TempClass='http://www.chalmers.se/ontologies/ssy235Ontology.owl#',
+        %( TempClass='http://www.chalmers.se/ontologies/ssy235Ontology.owl#',
+        % http://www.semanticweb.org/xm/ontologies/2020/11/ssy235Ontology.owl
+        ( TempClass='http://www.semanticweb.org/xm/ontologies/2020/11/ssy235Ontology.owl#',
 	atom_concat(TempClass, Class, Class_path)
 	% write(Class_path), nl
  	)).
