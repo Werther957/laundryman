@@ -29,6 +29,7 @@ find_package(catkin REQUIRED COMPONENTS
   aruco_msgs
   sensor_msgs
   visualization_msgs
+  rosprolog
 )
 
 
@@ -132,9 +133,17 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES LaundryMan
-   CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation message_runtime
+   CATKIN_DEPENDS roscpp image_transport cv_bridge pal_detection_msgs  geometry_msgs message_generation message_runtime rosprolog
 )
 
+
+# include the headers of the library
+file(GLOB_RECURSE ONTO_INC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+        src/*.hpp include/*.h)
+
+# include all c++ files
+file(GLOB SRC_HELPERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 
+        src/*.cpp)
 ###########
 ## Build ##
 ###########
@@ -164,6 +173,10 @@ include_directories(
  add_executable(motion_control_node src/motion_control_node.cpp)
  add_executable(aruco_node src/aruco_node.cpp)
 
+
+add_executable(queries_node src/test_query.cpp)
+
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -180,9 +193,14 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(vision_node ${OpenCV_LIBRARIES} ${TORCH_LIBRARIES} ${catkin_LIBRARIES})
- target_link_libraries(motion_control_node
+ target_link_libraries(motion_control_node 
   ${catkin_LIBRARIES}
 )
+ target_link_libraries(queries_node 
+  ${catkin_LIBRARIES}
+)
+
+
  target_link_libraries(aruco_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
