@@ -306,11 +306,7 @@ public:
         cv_bridge::CvImage out_msg;
         out_msg.header.stamp = curr_stamp;
         out_msg.encoding = sensor_msgs::image_encodings::RGB8;
-        cv::Mat imageRect;
-        if (markers_.size() > 0) {
-          reproject(inImageOri_, imageRect, cv::Size(80, 160), markers_[0]);
-          out_msg.image = imageRect(cv::Rect(0, 80, 80, 80));
-        }
+        out_msg.image = inImage_;
         image_pub_.publish(out_msg.toImageMsg());
       }
 

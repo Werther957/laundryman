@@ -190,7 +190,7 @@ public:
 
     geometry_msgs::PoseStamped grasp_pose;
     grasp_pose.header.frame_id = "base_footprint";
-    grasp_pose.pose.position.x = pose_msg.position.x;
+    grasp_pose.pose.position.x = pose_msg.position.x - 0.05;
     grasp_pose.pose.position.y = pose_msg.position.y;
     grasp_pose.pose.position.z = pose_msg.position.z + 0.20;
 
@@ -388,7 +388,11 @@ public:
     tf2::Quaternion q_in(pose_in.orientation.x, pose_in.orientation.y,
                          pose_in.orientation.z, pose_in.orientation.w);
     tf2::Quaternion q_rot(-0.4996018, -0.4999998, 0.4999998, 0.5003982);
-    tf2::Quaternion q_out = q_in.inverse() * q_rot * q_in;
+    tf2::Vector3 x = tf2::Vector3(1, 0, 0);
+    tf2::Vector3 y = tf2::Vector3(0, 1, 0);
+    tf2::Vector3 z = tf2::Vector3(0, 0, 1);
+    tf2::Quaternion q_out =
+        q_in * tf2::Quaternion(z, -1.57) * tf2::Quaternion(x, -3.14);
     pose_out.orientation.x = q_out.x();
     pose_out.orientation.y = q_out.y();
     pose_out.orientation.z = q_out.z();
