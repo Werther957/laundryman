@@ -34,275 +34,128 @@
 
 /** \author Job van Dieten. */
 
-
 // ROS HEADERS
-#include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
+#include <laundryman/CubeInfo.h>
+#include <laundryman/CubeInfoList.h>
+#include <ros/ros.h>
 #include <sensor_msgs/Image.h>
-#include <image_transport/image_transport.h>
+#include <sensor_msgs/image_encodings.h>
 
 // OpenCV headers
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include "opencv2/core.hpp"
 
 // Libtorch headers
-#include <torch/torch.h>
 #include <torch/script.h>
+#include <torch/torch.h>
 
-//marker
-#include <geometry_msgs/PoseStamped.h>
-
-using namespace cv;
-using namespace std;
-
-//////////////////////////////////////////////////////////////////
-// helper function:
-// finds a cosine of angle between vectors
-// from pt0->pt1 and from pt0->pt2
-int thresh = 50, N = 11;
-static double angle( Point pt1, Point pt2, Point pt0 )
-{
-    double dx1 = pt1.x - pt0.x;
-    double dy1 = pt1.y - pt0.y;
-    double dx2 = pt2.x - pt0.x;
-    double dy2 = pt2.y - pt0.y;
-    return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
-}
-// returns sequence of squares detected on the image.
-static void findSquares( const Mat& image, vector<vector<Point> >& squares )
-{
-    squares.clear();
-    Mat pyr, timg, gray0(image.size(), CV_8U), gray;
-    // down-scale and upscale the image to filter out the noise
-    pyrDown(image, pyr, Size(image.cols/2, image.rows/2));
-    pyrUp(pyr, timg, image.size());
-    vector<vector<Point> > contours;
-    // find squares in every color plane of the image
-    
-        int ch[] = {0, 0}; //can be {0,0} or {1,0} or {2,0}
-        mixChannels(&timg, 1, &gray0, 1, ch, 1);
-        // try several threshold levels
-        for( int l = 0; l < N; l++ )
-        {
-            //int l = 0; //l can be 0-11
-            // hack: use Canny instead of zero threshold level.
-            // Canny helps to catch squares with gradient shading
-            if( l == 0 )
-            {
-                // apply Canny. Take the upper threshold from slider
-                // and set the lower to 0 (which forces edges merging)
-               // Canny(gray0, gray, 0, thresh, 5);
-                Canny(gray0, gray, 85, 255, 5);
-                // dilate canny output to remove potential
-                // holes between edge segments
-                dilate(gray, gray, Mat(), Point(-1,-1));
-            }
-            else
-            {
-                // apply threshold if l!=0:
-                //     tgray(x,y) = gray(x,y) < (l+1)*255/N ? 255 : 0
-                gray = gray0 >= (l+1)*255/N;
-            }
-            // find contours and store them all as a list
-            findContours(gray, contours, RETR_LIST, CHAIN_APPROX_SIMPLE);
-            vector<Point> approx;
-            // test each contour
-            for( size_t i = 0; i < contours.size(); i++ )
-            {
-                // approximate contour with accuracy proportional
-                // to the contour perimeter
-                approxPolyDP(contours[i], approx, arcLength(contours[i], true)*0.02, true);
-                // square contours should have 4 vertices after approximation
-                // relatively large area (to filter out noisy contours)
-                // and be convex.
-                // Note: absolute value of an area is used because
-                // area may be positive or negative - in accordance with the
-                // contour orientation
-                
-                if( approx.size() == 4 &&
-                    fabs(contourArea(approx)) > 17500 && fabs(contourArea(approx)) < 25500 &&
-                    isContourConvex(approx) )
-                {
-                    double maxCosine = 0;
-                    std::cout << l << fabs(contourArea(approx)) << std::endl;
-                    for( int j = 2; j < 5; j++ )
-                    {
-                        // find the maximum cosine of the angle between joint edges
-                        double cosine = fabs(angle(approx[j%4], approx[j-2], approx[j-1]));
-                        maxCosine = MAX(maxCosine, cosine);
-                    }
-                    // if cosines of all angles are small
-                    // (all angles are ~90 degree) then write quandrange
-                    // vertices to resultant sequence
-                    if( maxCosine < 0.3 )
-                        squares.push_back(approx);
-                }
-            }
-        }
-    
-}
-/////////////////////////////////////////////
-
-class vision_node
-{
+class vision_node {
 public:
-	vision_node(ros::NodeHandle nh_);
-	~vision_node();
-	image_transport::ImageTransport _imageTransport;
-	image_transport::Subscriber image_sub;
-	
+  ros::NodeHandle nh;
+  ros::Subscriber image_sub;
+  ros::Publisher cube_info_list_pub;
+  torch::jit::script::Module module;
 
-protected:
-	void imageCB(const sensor_msgs::ImageConstPtr& msg);
-	void ImageProcessing();
-	void Classfier(cv::Mat &image);
-
-private:
-	cv::Mat img_bgr, img1, img2, thresh, diff;
-	int i;
+  void imageCB(const laundryman::CubeInfoList &msg);
+  void classify(cv::Mat &image, int &color_id, int &category_id);
+  void init();
 };
 
-const std::string win1 = "Live Camera Feed";
-const std::string win2 = "Threshold Difference";
-
-vision_node::vision_node(ros::NodeHandle nh_): _imageTransport(nh_)
-{
-	image_sub = _imageTransport.subscribe("xtion/rgb/image_raw", 1, &vision_node::imageCB, this, image_transport::TransportHints("compressed"));
-        
-	cv::namedWindow(win1, CV_WINDOW_FREERATIO);
-	cv::namedWindow(win2, CV_WINDOW_FREERATIO);
-	i=0;
+void vision_node::init() {
+  image_sub = nh.subscribe("/aruco_node/cube_info_list", 1,
+                           &vision_node::imageCB, this);
+  torch::jit::script::Module module =
+      torch::jit::load("/home/user/catkin_ws/src/laundryman/src/clothNet.pt");
+  cube_info_list_pub =
+      nh.advertise<laundryman::CubeInfoList>("/vision_node/cube_info_list", 1);
 }
 
-vision_node::~vision_node()
-{
-	cv::destroyWindow(win1);
-	cv::destroyWindow(win2);
+void vision_node::imageCB(const laundryman::CubeInfoList &msg) {
+  laundryman::CubeInfoList cube_info_list;
+  for (unsigned int i = 0; i < msg.data.size(); i++) {
+    int color_id = 0;
+    int category_id = 0;
+    cv_bridge::CvImagePtr cv_ptr;
+    try {
+      cv_ptr = cv_bridge::toCvCopy(msg.data[i].image,
+                                   sensor_msgs::image_encodings::RGB8);
+    } catch (...) {
+      ROS_INFO("unrecognized image encoding");
+    }
+    if (cv_ptr != NULL) {
+      cv::Mat inImage = cv_ptr->image;
+      classify(inImage, color_id, category_id);
+    }
+
+    if (category_id == 1) {
+      ROS_INFO("inflating msg");
+      laundryman::CubeInfo cube_info;
+      cube_info.id = msg.data[i].id;
+      cube_info.color_id = color_id;
+      cube_info.pose = msg.data[i].pose;
+      cube_info_list.data.push_back(cube_info);
+    }
+  }
+
+  cube_info_list_pub.publish(cube_info_list);
 }
 
-void vision_node::imageCB(const sensor_msgs::ImageConstPtr& msg)
-{
-	cv_bridge::CvImagePtr cvPtr;
-	try
-	{ 
-		cvPtr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-	}
-	catch (cv_bridge::Exception& e) 
-	{
-		ROS_ERROR("cv_bridge exception: %s", e.what());
-		return;
-	}
-	cvPtr->image.copyTo(img_bgr);
-		cv::cvtColor(cvPtr->image, img1, cv::COLOR_BGR2GRAY);
-		this->ImageProcessing();
+void vision_node::classify(cv::Mat &image, int &color_id, int &category_id) {
+  /*Input
+  image       --  homography camera image of cloth
+  module      --  loaded tracing model
+Output
+  color_id    --  infered most likely color. Look up in the colorName_id table.
+  category_id --  infered most likely category. Look up in the categoryName_id
+table.
+*/
+  // cv::cvtColor(image, image, CV_BGR2RGB); // according to aruco_node.cpp, the
+  // image received seems to be already RGB8
+  cv::resize(
+      image, image,
+      cv::Size(60, 80)); // the trainingset is sized 60x80 to achive optimal
+                         // classification. To be decided if resize or rect.
+  // if the camera image is similar to trainingset, then resize. If not, rect to
+  // similar shape.
 
+  torch::Tensor img_tensor =
+      torch::from_blob(image.data, {1, image.rows, image.cols, 3},
+                       torch::kByte); // Convert Mat to Tensor
+  img_tensor =
+      img_tensor.permute({0, 3, 1, 2}); // Required by pytorch [C,H,W]. OpenCV
+                                        // is [H,W,C]. output size [1,3,80,60]
+  img_tensor = img_tensor.toType(
+      torch::kFloat);               // Change data types kFloat is torch.float64
+  img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
 
+  // clothNet.pt is Torch Script via tracing. Load the torchscript model
+  torch::jit::script::Module module = torch::jit::load(
+      "/home/user/catkin_ws/src/laundryman/src/clothNet.pt"); // load the model
+                                                              // in src
+  // std::cout << "Inference model loaded successfully" << std::endl;
+  auto output = module.forward({img_tensor});
+  auto opt_dict = output.toGenericDict(); // genericDict
+  auto color_score = opt_dict.at("color");
+  // std::cout << color_score << std::endl; // CPUFloatType
+  auto category_score = opt_dict.at("category");
+  // std::cout << category_score << std::endl;
+  std::tuple<torch::Tensor, torch::Tensor> max_classes_color =
+      torch::max(color_score.toTensor(), 1);
+  std::tuple<torch::Tensor, torch::Tensor> max_classes_category =
+      torch::max(category_score.toTensor(), 1);
+  color_id = std::get<1>(max_classes_color)[0].item<int>(); // CPULongType
+  category_id = std::get<1>(max_classes_category)[0].item<int>();
+
+  ROS_INFO("color: %d", color_id);
+  ROS_INFO("category: %d", category_id);
 }
 
-
-
-
-void vision_node::Classfier(cv::Mat &image){
-	/*Input
-        image       --  homography camera image of cloth
-        module      --  loaded tracing model
-      Output
-        color_id    --  infered most likely color. Look up in the colorName_id table.
-        category_id --  infered most likely category. Look up in the categoryName_id table. 
-    */
-    // cv::cvtColor(image, image, CV_BGR2RGB); // according to aruco_node.cpp, the image received seems to be already RGB8
-    cv::resize(image, image, cv::Size(60, 80)); // the trainingset is sized 60x80 to achive optimal classification. To be decided if resize or rect.
-    // if the camera image is similar to trainingset, then resize. If not, rect to similar shape.
-
-    torch::Tensor img_tensor = torch::from_blob(image.data, {1, image.rows, image.cols, 3}, torch::kByte); // Convert Mat to Tensor
-    img_tensor = img_tensor.permute({0, 3, 1, 2}); // Required by pytorch [C,H,W]. OpenCV is [H,W,C]. output size [1,3,80,60]
-    img_tensor = img_tensor.toType(torch::kFloat);               // Change data types kFloat is torch.float64
-    img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
-
-    // clothNet.pt is Torch Script via tracing. Load the torchscript model
-    torch::jit::script::Module module = torch::jit::load("./clothNet.pt"); //load the model in src 
-    // std::cout << "Inference model loaded successfully" << std::endl;
-    auto output = module.forward({img_tensor}); 
-    auto opt_dict = output.toGenericDict(); // genericDict
-    auto color_score = opt_dict.at("color");
-    //std::cout << color_score << std::endl; // CPUFloatType
-    auto category_score = opt_dict.at("category");
-    //std::cout << category_score << std::endl;
-    std::tuple<torch::Tensor, torch::Tensor> max_classes_color = torch::max(color_score.toTensor(), 1); 
-    std::tuple<torch::Tensor, torch::Tensor> max_classes_category = torch::max(category_score.toTensor(), 1);
-    auto color_id = std::get<1>(max_classes_color); // CPULongType
-    auto category_id = std::get<1>(max_classes_category);
-}
-
-//handle images here
-void vision_node::ImageProcessing()
-{
-	if(i!=0)
-	{	
-    cv::Mat graymat;
-    cv::cvtColor(img_bgr, graymat, cv::COLOR_BGR2GRAY);
-
-    cv::imshow(win2, graymat);
-
-
-	vector<vector<Point> > squares;
-    findSquares(img_bgr, squares);
-    polylines(img_bgr, squares, true, Scalar(0, 255, 0), 3, LINE_AA);
-    imshow(win1, img_bgr);
-
-	// classify the category and color of the image
-	//vision_node::Classfier(image_cloth);
-
-	}
-	++i;
-	cv::waitKey(1);
-}
-
-
-
-//
-void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
-    std::cout << "Position x: " << msg->pose.position.x << std::endl;
-    std::cout << "Position y: " << msg->pose.position.y << std::endl;
-    std::cout << "Position z: " << msg->pose.position.z << std::endl;
-
-    std::cout << "Orientation x: " << msg->pose.orientation.x << std::endl;
-    std::cout << "Orientation y: " << msg->pose.orientation.y << std::endl;
-    std::cout << "Orientation z: " << msg->pose.orientation.z << std::endl;
-}
-
-
-
-int main(int argc, char** argv)
-{
-	ros::init(argc, argv, "vision_node");
-	ros::NodeHandle nh;
-	vision_node ts(nh);
-	//suscribe aruco marker from aruco ros
-    //ros::Subscriber sub = nh.subscribe("/aruco_single/pose", 1000, pose_callback);
-	ros::spin();
-}
-
-
-#if 0
-#include <ros/ros.h>
-
-int main(int argc, char* argv[])
-{
-  // This must be called before anything else ROS-related
+int main(int argc, char **argv) {
   ros::init(argc, argv, "vision_node");
-
-    // Create a ROS node handle
-  ros::NodeHandle nh;
-
-
-  ROS_INFO("Hello, World!");
-
-  // Don't exit the program.
+  vision_node ts;
+  ts.init();
+  // suscribe aruco marker from aruco ros
+  // ros::Subscriber sub = nh.subscribe("/aruco_single/pose", 1000,
+  // pose_callback);
   ros::spin();
 }
-
-#endif
