@@ -223,7 +223,7 @@ void vision_node::Classfier(cv::Mat &image){
     img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
 
     // clothNet.pt is Torch Script via tracing. Load the torchscript model
-    torch::jit::script::Module module = torch::jit::load("/home/user/catkin_ws/src/laundryman/src/clothNet.pt"); 
+    torch::jit::script::Module module = torch::jit::load("./clothNet.pt"); //load the model in src 
     // std::cout << "Inference model loaded successfully" << std::endl;
     auto output = module.forward({img_tensor}); 
     auto opt_dict = output.toGenericDict(); // genericDict
