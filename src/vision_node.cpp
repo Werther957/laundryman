@@ -213,8 +213,9 @@ void vision_node::Classfier(cv::Mat &image){
         color_id    --  infered most likely color. Look up in the colorName_id table.
         category_id --  infered most likely category. Look up in the categoryName_id table. 
     */
-    cv::cvtColor(image, image, CV_BGR2RGB);
-    cv::resize(image, image, cv::Size(80, 60)); // the trainingset is sized 80x60
+    // cv::cvtColor(image, image, CV_BGR2RGB); // according to aruco_node.cpp, the image received seems to be already RGB8
+    cv::resize(image, image, cv::Size(60, 80)); // the trainingset is sized 60x80 to achive optimal classification. To be decided if resize or rect.
+    // if the camera image is similar to trainingset, then resize. If not, rect to similar shape.
 
     torch::Tensor img_tensor = torch::from_blob(image.data, {1, image.rows, image.cols, 3}, torch::kByte); // Convert Mat to Tensor
     img_tensor = img_tensor.permute({0, 3, 1, 2}); // Required by pytorch [C,H,W]. OpenCV is [H,W,C]. output size [1,3,80,60]
@@ -239,13 +240,8 @@ void vision_node::Classfier(cv::Mat &image){
 //handle images here
 void vision_node::ImageProcessing()
 {
-	// Aruco marker recognition, detect the location of the target object
-	// find the nearby cloth image, classify if it is apparel, if so, sent the information to the action node.
 	if(i!=0)
 	{	
-
-	//cv::imshow(win1, img_bgr);
-
     cv::Mat graymat;
     cv::cvtColor(img_bgr, graymat, cv::COLOR_BGR2GRAY);
 
@@ -256,11 +252,6 @@ void vision_node::ImageProcessing()
     findSquares(img_bgr, squares);
     polylines(img_bgr, squares, true, Scalar(0, 255, 0), 3, LINE_AA);
     imshow(win1, img_bgr);
-
-	// aruco marker detection
-
-	// process the cloth image to the size 80x60x3 (Convert OpenCV default BGR to Torch RGB)
-
 
 	// classify the category and color of the image
 	//vision_node::Classfier(image_cloth);
