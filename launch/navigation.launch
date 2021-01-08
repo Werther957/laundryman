@@ -61,4 +61,10 @@
   <include file="$(find tiago_laser_sensors)/launch/rgbd_cloud_laser.launch">
     <arg name="cloud" value="/xtion/depth_registered/points"/>
   </include>
+
+    <include file="$(find laundryman)/launch/detect.launch">
+  </include>
+
+      <include file="$(find laundryman)/launch/onto_robot.launch">
+  </include>
 </launch>
