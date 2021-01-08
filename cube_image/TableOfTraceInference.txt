@@ -1,12 +1,31 @@
 id	trueLabel	teLabelPy	teLabelCPP	BGR2RGB
-2260	Black	Grey	White Acc	White Acc
+2260	Black	Black	White Acc	White Acc
 2290	Pink	Pink	Purple
 2312	White	White	White
 1658	Blue	Blue	Steel
 2287	White	White	Gold	White Acc
-2497	Black	Brown	--		Footwear
-2558	Black	Grey	Cream
+2497	Black	Black	--		Footwear
+2558	Black	Black	Cream
 解决办法：
 Grey、Brown在ontology里也为Black(建议换名字为Darks)
 1163	Blue	Blue
 1164	Blue	Blue
+
+Beige 749
+Gold 629
+Brown 3944
+White 5504
+Green 2116
+Grey 2262 = Grey 2116 + Grey Melange 146
+
+
+替换为Excolor的
+Bronze	95
+Burgundy	45
+Charcoal 228
+Coffee Brown 41
+Copper 86
+Fluorescent Green 5
+
+
+
