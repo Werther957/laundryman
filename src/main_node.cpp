@@ -58,27 +58,30 @@ public:
   // function: get the bucket ID from the color of cloth inside
   unsigned int query_color(std::string color) {
 
-    ROS_INFO("query in ontology");
+    ROS_INFO("query in ontology input color:%s", color.c_str());
 
-    pl.query("rdf_assert(ssy235Ontology:'temp',rdf:type,ssy235Ontology:" +
-             color + ")");
+    pl.query("rdf_assert(ssy235Ontology:temp" + color +
+             ",rdf:type,ssy235Ontology:" + color + ")");
 
-    PrologQuery bdgs = pl.query(
-        "owl_individual_of(ssy235Ontology:'temp',ssy235Ontology:bucketType1)");
+    PrologQuery bdgs = pl.query("owl_individual_of(ssy235Ontology:temp" +
+                                color + ",ssy235Ontology:bucketType1)");
 
     if (!(bdgs.begin() == bdgs.end())) {
+      ROS_INFO("white");
+
       return WHITE;
     }
-    bdgs = pl.query(
-        "owl_individual_of(ssy235Ontology:'temp',ssy235Ontology:bucketType2)");
-
+    bdgs = pl.query("owl_individual_of(ssy235Ontology:temp" + color +
+                    ",ssy235Ontology:bucketType2)");
     if (!(bdgs.begin() == bdgs.end())) {
+      ROS_INFO("red");
       return RED;
     }
-    bdgs = pl.query(
-        "owl_individual_of(ssy235Ontology:'temp',ssy235Ontology:bucketType3)");
+    bdgs = pl.query("owl_individual_of(ssy235Ontology:temp" + color +
+                    ",ssy235Ontology:bucketType3)");
 
     if (!(bdgs.begin() == bdgs.end())) {
+      ROS_INFO("black");
       return BLACK;
     }
     return 0;
@@ -86,10 +89,11 @@ public:
 
   unsigned int queryBucketType() {
     // get cloth color
-    ROS_INFO("query bucket type");
+
     std::string color_string = getClothColor();
 
     // query
+    ROS_INFO("query bucket type %d", query_color(color_string));
     return query_color(color_string);
   };
 
@@ -129,6 +133,7 @@ public:
     ros::spinOnce();
     ROS_INFO("spin 0");
     assignBucketType(0, queryBucketType());
+    ROS_INFO("id0 type is %d", buckettype[0]);
 
     arrived = false;
     ROS_INFO("categorizing bucket 1");
@@ -139,6 +144,7 @@ public:
     ros::Duration(3).sleep();
     ros::spinOnce();
     assignBucketType(1, queryBucketType());
+    ROS_INFO("id1 type is %d", buckettype[1]);
 
     arrived = false;
     ROS_INFO("categorizing bucket 2");
@@ -149,6 +155,7 @@ public:
     ros::Duration(3).sleep();
     ros::spinOnce();
     assignBucketType(2, queryBucketType());
+    ROS_INFO("id2 type is %d", buckettype[2]);
     arrived = false;
     ROS_INFO("categorized");
   }
@@ -211,7 +218,7 @@ public:
       ROS_ERROR("Failed to call gotobucket");
       return false;
     }
-    ROS_INFO("gotobucket send out");
+    ROS_INFO("gotobucket send out: %d", id);
     return true;
   };
 
@@ -280,6 +287,7 @@ public:
       }
       //
     }
+    return 4;
   };
 
   void callback_cubelist(laundryman::CubeInfoList cube_visionlist) {
@@ -371,6 +379,10 @@ int main(int argc, char *argv[]) {
 
   ros::init(argc, argv, "main_node");
   LaundryMan mylaundryman;
+
+  // mylaundryman.query_color("black");
+  // mylaundryman.query_color("red");
+  // mylaundryman.query_color("white");
 
   mylaundryman.init();
   mylaundryman.execute();
