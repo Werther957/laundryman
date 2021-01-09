@@ -50,7 +50,7 @@
   </include>
 
   <node name="rviz" pkg="rviz" type="rviz" if="$(arg rviz)"
-      args="-d $(find tiago_2dnav)/config/rviz/navigation$(arg sim_sufix).rviz"/>
+      args="-d $(find laundryman)/launch/laundryman.rviz"/>
   <!--
   <group unless="$(arg public_sim)">
     <include file="$(find pal_loc_measure)/launch/pal_loc_measure.launch">

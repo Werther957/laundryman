@@ -137,6 +137,7 @@ public:
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
       ROS_INFO("goal reached");
       moveHead(motionMap["head_down"]);
+      ros::Duration(3.0).sleep();
     } else {
       ROS_INFO("goal reaching failed");
     }
@@ -177,16 +178,17 @@ public:
     // prepare
     moveArm(motionMap["side_arm"]);
     moveGripper(motionMap["open"]);
-    geometry_msgs::PoseStamped approach_pose;
-    approach_pose.header.frame_id = "base_footprint";
-    approach_pose.pose.position.x = pose_msg.position.x;
-    approach_pose.pose.position.y = pose_msg.position.y;
-    approach_pose.pose.position.z = pose_msg.position.z + 0.40;
-    approach_pose.pose.orientation.x = -0.5481993;
-    approach_pose.pose.orientation.y = 0.4501637;
-    approach_pose.pose.orientation.z = 0.4551655;
-    approach_pose.pose.orientation.w = 0.5381957;
-    moveArmToPose(approach_pose);
+    // geometry_msgs::PoseStamped approach_pose;
+    // approach_pose.header.frame_id = "base_footprint";
+    // approach_pose.pose.position.x = pose_msg.position.x;
+    // approach_pose.pose.position.y = pose_msg.position.y;
+    // approach_pose.pose.position.z = pose_msg.position.z + 0.20;
+    // approach_pose.pose.orientation.x = -0.5481993;
+    // approach_pose.pose.orientation.y = 0.4501637;
+    // approach_pose.pose.orientation.z = 0.4551655;
+    // approach_pose.pose.orientation.w = 0.5381957;
+    moveArm(motionMap["center_arm"]);
+    // moveArmToPose(approach_pose);
 
     geometry_msgs::PoseStamped grasp_pose;
     grasp_pose.header.frame_id = "base_footprint";

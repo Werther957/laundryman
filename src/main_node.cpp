@@ -7,14 +7,14 @@
 
 using namespace std;
 // color to be changed according to the vision node
-#define WHITE 1
+#define WHITE 45
 #define RED 2
-#define BLACK 3
+#define BLACK 1
 #define UNUSED_CLOTH_COLOR 0xff
-#define MAXMIUM_CUBE_NUMBER 10
+#define MAXMIUM_CUBE_NUMBER 3
 
 #define CLOTH_TYPE 1
-#define NO_CLOTH_RETURN 10
+#define NO_CLOTH_RETURN 3
 
 struct Cube {
   unsigned int color_id;
@@ -103,12 +103,12 @@ public:
       return true;
     }
 
-    ros::Duration(10).sleep(); // sleep for 10s and check it again
+    ros::Duration(3).sleep(); // sleep for 3s and check it again
     ros::spinOnce();
     if (msgRecvFlag) {
       return true;
     }
-    ros::Duration(10).sleep(); // repeat
+    ros::Duration(3).sleep(); // repeat
     ros::spinOnce();
     if (msgRecvFlag) {
       return true;
@@ -125,7 +125,7 @@ public:
     while (!arrived) {
       arrived = goToBucket(0);
     }
-    ros::Duration(10).sleep();
+    ros::Duration(3).sleep();
     ros::spinOnce();
     ROS_INFO("spin 0");
     assignBucketType(0, queryBucketType());
@@ -136,7 +136,7 @@ public:
       arrived = goToBucket(1);
     }
 
-    ros::Duration(10).sleep();
+    ros::Duration(3).sleep();
     ros::spinOnce();
     assignBucketType(1, queryBucketType());
 
@@ -146,7 +146,7 @@ public:
       arrived = goToBucket(2);
     }
 
-    ros::Duration(10).sleep();
+    ros::Duration(3).sleep();
     ros::spinOnce();
     assignBucketType(2, queryBucketType());
     arrived = false;
@@ -166,7 +166,7 @@ public:
       msgRecvFlag = false; // prepare the flag for the receivin timeout check
       ROS_INFO("Reach clothes bucket to pick up");
 
-      ros::Duration(10).sleep();
+      ros::Duration(3).sleep();
       ros::spinOnce();
 
       // check if cube left
@@ -186,7 +186,7 @@ public:
       targetId = queryBucketIdByType(cubeinfolist[0].color_id);
       goToBucket(targetId);
 
-      ros::Duration(10).sleep();
+      // ros::Duration(3).sleep();
       place(targetId);
 
       ROS_INFO("sorted");
@@ -220,13 +220,7 @@ public:
 
     req.request.bucketId = 0;
     req.request.action = laundryman::MotionService::Request::PICKUP;
-    req.request.pose.position.x = cube.pose.position.x;
-    req.request.pose.position.y = cube.pose.position.y;
-    req.request.pose.position.z = cube.pose.position.z;
-    req.request.pose.orientation.x = 0;
-    req.request.pose.orientation.y = 0;
-    req.request.pose.orientation.z = 0;
-    req.request.pose.orientation.w = 0;
+    req.request.pose = cube.pose;
 
     if (!client_motion.call(req)) {
 
@@ -245,13 +239,13 @@ public:
     req.request.action = laundryman::MotionService::Request::PUTDOWN;
 
     // might to be modified: the postion should be align with vision node
-    req.request.pose.position.x = bucket_map[id].pose.position.x;
-    req.request.pose.position.y = bucket_map[id].pose.position.y;
-    req.request.pose.position.z = bucket_map[id].pose.position.z;
-    req.request.pose.orientation.x = bucket_map[id].pose.orientation.x;
-    req.request.pose.orientation.y = bucket_map[id].pose.orientation.y;
-    req.request.pose.orientation.z = bucket_map[id].pose.orientation.z;
-    req.request.pose.orientation.w = bucket_map[id].pose.orientation.w;
+    req.request.pose.position.x = 0.500;
+    req.request.pose.position.y = 0.000 + (1 + (rand() % 3)) * 0.05;
+    req.request.pose.position.z = 0.86;
+    req.request.pose.orientation.x = -0.5481993;
+    req.request.pose.orientation.y = 0.4501637;
+    req.request.pose.orientation.z = 0.4551655;
+    req.request.pose.orientation.w = 0.5381957;
 
     if (!client_motion.call(req)) {
 
@@ -298,7 +292,7 @@ public:
       // It is decided to handle all the other colors as RED, limited by the
       // vision node
       if ((WHITE != cube_visionlist.data[i].color_id) &&
-          (WHITE != cube_visionlist.data[i].color_id)) {
+          (BLACK != cube_visionlist.data[i].color_id)) {
         cubeinfolist[i].color_id = RED;
       }
       cubeinfolist[i].pose.position.x = cube_visionlist.data[i].pose.position.x;
