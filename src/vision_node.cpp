@@ -64,9 +64,9 @@ public:
 void vision_node::init() {
   image_sub = nh.subscribe("/aruco_node/cube_info_list", 1,
                            &vision_node::imageCB, this);
-  torch::jit::script::Module module =
+  module =
       torch::jit::load("/home/user/catkin_ws/src/laundryman/src/clothNet.pt");
-      torch::NoGradGuard no_grad_guard;
+  torch::NoGradGuard no_grad_guard;
   cube_info_list_pub =
       nh.advertise<laundryman::CubeInfoList>("/vision_node/cube_info_list", 1);
 }
@@ -112,10 +112,9 @@ table.
 */
   // cv::cvtColor(image, image, CV_BGR2RGB); // according to aruco_node.cpp, the
   // image received seems to be already RGB8
-  cv::resize(
-      image, image,
-      cv::Size(60, 80), CV_INTER_AREA); // the trainingset is sized 60x80 to achive optimal
-                         // classification. To be decided if resize or rect.
+  cv::resize(image, image, cv::Size(60, 80),
+             CV_INTER_AREA); // the trainingset is sized 60x80 to achive optimal
+                             // classification. To be decided if resize or rect.
   // if the camera image is similar to trainingset, then resize. If not, rect to
   // similar shape.
 
@@ -129,22 +128,16 @@ table.
       torch::kFloat);               // Change data types kFloat is torch.float64
   img_tensor = img_tensor.div(255); // rescale pixel between 0 and 1
 
-  // Normalize the data. The inference has to be the same preprocessing as training.
+  // Normalize the data. The inference has to be the same preprocessing as
+  // training.
   img_tensor[0][0] = img_tensor[0][0].sub_(0.485).div_(0.229);
   img_tensor[0][1] = img_tensor[0][1].sub_(0.456).div_(0.224);
   img_tensor[0][2] = img_tensor[0][2].sub_(0.406).div_(0.225);
 
-  //NEED TEST IF NECESSARY. NO NEED
- // std::vector<torch::jit::IValue> inputs;
- // inputs.push_back(img_tensor);
-
-  // clothNet.pt is Torch Script via tracing. Load the torchscript model
-  torch::jit::script::Module module = torch::jit::load(
-      "/home/user/catkin_ws/src/laundryman/src/clothNet.pt"); // load the model
-                                                              // in src
-  // std::cout << "Inference model loaded successfully" << std::endl;
-  torch::NoGradGuard no_grad_guard; //NEED TEST IF NECESSARY
-  //auto output = module.forward({inputs}); //NEED TEST IF NECESSARY. NO NEED
+  // NEED TEST IF NECESSARY. NO NEED
+  // std::vector<torch::jit::IValue> inputs;
+  // inputs.push_back(img_tensor);
+  // auto output = module.forward({inputs}); //NEED TEST IF NECESSARY. NO NEED
   auto output = module.forward({img_tensor});
   auto opt_dict = output.toGenericDict(); // genericDict
   auto color_score = opt_dict.at("color");

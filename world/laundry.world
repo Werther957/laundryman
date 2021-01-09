@@ -40,25 +40,25 @@
     <include>
       <uri>model://table_0m8</uri>
       <name>table_black</name>
-      <pose>0.88 -2.0 0 0 0 0</pose>
+      <pose>0.88 -2.0 -0.1 0 0 0</pose>
     </include>
     <!-- A table -->
     <include>
       <uri>model://table_0m8</uri>
       <name>table_white</name>
-      <pose>0.88 0 0 0 0 0</pose>
+      <pose>0.88 0 -0.1 0 0 0</pose>
     </include>
     <!-- A table -->
     <include>
       <uri>model://table_0m8</uri>
       <name>table_color</name>
-      <pose>0.88 2.0 0 0 0 0</pose>
+      <pose>0.88 2.0 -0.1 0 0 0</pose>
     </include>
     <!-- A table -->
     <include>
       <uri>model://table_0m8</uri>
       <name>table_unsorted</name>
-      <pose>-1.88 0 0 0 0 0</pose>
+      <pose>-1.88 0 -0.1 0 0 0</pose>
     </include>
     <!-- Cube with ArUco markers on the sides -->
    

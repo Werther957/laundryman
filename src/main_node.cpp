@@ -173,7 +173,7 @@ public:
       msgRecvFlag = false; // prepare the flag for the receivin timeout check
       ROS_INFO("Reach clothes bucket to pick up");
 
-      ros::Duration(3).sleep();
+      ros::Duration(6).sleep();
       ros::spinOnce();
 
       // check if cube left
@@ -246,7 +246,7 @@ public:
     req.request.action = laundryman::MotionService::Request::PUTDOWN;
 
     // might to be modified: the postion should be align with vision node
-    req.request.pose.position.x = 0.500;
+    req.request.pose.position.x = 0.700;
     req.request.pose.position.y = 0.000 + (1 + (rand() % 3)) * 0.05;
     req.request.pose.position.z = 0.86;
     req.request.pose.orientation.x = -0.5481993;
