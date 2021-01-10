@@ -102,7 +102,7 @@ public:
     bucket_map[2].pose.orientation.w = 1.0;
 
     bucket_map[3].bucket_id = 3;
-    bucket_map[3].pose.position.x = -1.0;
+    bucket_map[3].pose.position.x = -1.00;
     bucket_map[3].pose.position.y = 0.0;
     bucket_map[3].pose.position.z = 0.0;
     bucket_map[3].pose.orientation.x = 0.0;
@@ -192,14 +192,12 @@ public:
     grasp_pose.header.frame_id = "base_footprint";
     grasp_pose.pose.position.x = pose_msg.position.x;
     grasp_pose.pose.position.y = pose_msg.position.y;
-    grasp_pose.pose.position.z = pose_msg.position.z + 0.23;
+    grasp_pose.pose.position.z =
+        (pose_msg.position.z > 0.7 ? pose_msg.position.z : 0.7) + 0.21;
 
     calculateGraspPose(pose_msg, grasp_pose.pose);
     moveArmToPose(grasp_pose);
     moveGripper(motionMap["pinch"]);
-
-    grasp_pose.pose.position.z = 1.10;
-    moveArmToPose(grasp_pose);
 
     ROS_INFO("cube_pose, x: %f, y: %f, z: %f, qx: %f, qy: %f, qz: %f, qw: %f",
              pose_msg.position.x, pose_msg.position.y, pose_msg.position.z,
@@ -210,6 +208,9 @@ public:
              grasp_pose.pose.position.z, grasp_pose.pose.orientation.x,
              grasp_pose.pose.orientation.y, grasp_pose.pose.orientation.z,
              grasp_pose.pose.orientation.w);
+
+    grasp_pose.pose.position.z = 1.10;
+    moveArmToPose(grasp_pose);
 
     moveTorso(motionMap["torso_up"]);
     moveArm(motionMap["side_arm"]);
@@ -223,35 +224,27 @@ public:
     approach_pose.header.frame_id = "base_footprint";
     approach_pose.pose.position.x = pose_msg.position.x;
     approach_pose.pose.position.y = pose_msg.position.y;
-    approach_pose.pose.position.z = pose_msg.position.z + 0.40;
+    approach_pose.pose.position.z = 1.10;
     approach_pose.pose.orientation.x = -0.5481993;
     approach_pose.pose.orientation.y = 0.4501637;
     approach_pose.pose.orientation.z = 0.4551655;
     approach_pose.pose.orientation.w = 0.5381957;
     moveArmToPose(approach_pose);
-
-    geometry_msgs::PoseStamped grasp_pose;
-    grasp_pose.header.frame_id = "base_footprint";
-    grasp_pose.pose.position.x = pose_msg.position.x;
-    grasp_pose.pose.position.y = pose_msg.position.y;
-    grasp_pose.pose.position.z = pose_msg.position.z + 0.23;
-
-    calculateGraspPose(approach_pose.pose, grasp_pose.pose);
-    moveArmToPose(grasp_pose);
+    ROS_INFO("cube_pose, x: %f, y: %f, z: %f, qx: %f, qy: %f, qz: %f, qw: %f",
+             pose_msg.position.x, pose_msg.position.y, pose_msg.position.z,
+             pose_msg.orientation.x, pose_msg.orientation.y,
+             pose_msg.orientation.z, pose_msg.orientation.w);
+    ROS_INFO(
+        "approach_pose, x: %f, y: %f, z: %f, qx: %f, qy: %f, qz: %f, qw: %f",
+        approach_pose.pose.position.x, approach_pose.pose.position.y,
+        approach_pose.pose.position.z, approach_pose.pose.orientation.x,
+        approach_pose.pose.orientation.y, approach_pose.pose.orientation.z,
+        approach_pose.pose.orientation.w);
 
     // moveTorso(motionMap["torso_down"]);
     moveGripper(motionMap["open"]);
     moveTorso(motionMap["torso_up"]);
     moveArm(motionMap["side_arm"]);
-    ROS_INFO("cube_pose, x: %f, y: %f, z: %f, qx: %f, qy: %f, qz: %f, qw: %f",
-             pose_msg.position.x, pose_msg.position.y, pose_msg.position.z,
-             pose_msg.orientation.x, pose_msg.orientation.y,
-             pose_msg.orientation.z, pose_msg.orientation.w);
-    ROS_INFO("grasp_pose, x: %f, y: %f, z: %f, qx: %f, qy: %f, qz: %f, qw: %f",
-             grasp_pose.pose.position.x, grasp_pose.pose.position.y,
-             grasp_pose.pose.position.z, grasp_pose.pose.orientation.x,
-             grasp_pose.pose.orientation.y, grasp_pose.pose.orientation.z,
-             grasp_pose.pose.orientation.w);
   }
 
   void moveHead(const trajectory_msgs::JointTrajectory &jt) {

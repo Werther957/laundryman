@@ -99,20 +99,17 @@ public:
 
   // timeout: 20 second, return false if no more message received from Vision
   // node
-  bool checkCubeLeft(struct Cube cubeinfolist[]) {
+  bool checkCubeLeft() {
 
     ros::spinOnce();
-
-    if (msgRecvFlag) {
-      return true;
-    }
-
     ros::Duration(3).sleep(); // sleep for 3s and check it again
     ros::spinOnce();
+    ros::Duration(3).sleep(); // repeat
+    ros::spinOnce();
     if (msgRecvFlag) {
       return true;
     }
-    ros::Duration(3).sleep(); // repeat
+    ros::Duration(10).sleep(); // repeat
     ros::spinOnce();
     if (msgRecvFlag) {
       return true;
@@ -177,7 +174,7 @@ public:
       ros::spinOnce();
 
       // check if cube left
-      cubeLeft = checkCubeLeft(cubeinfolist);
+      cubeLeft = checkCubeLeft();
       if (!cubeLeft) {
         ROS_INFO("No more cubes left");
         break;
@@ -248,7 +245,7 @@ public:
     // might to be modified: the postion should be align with vision node
     req.request.pose.position.x = 0.700;
     req.request.pose.position.y = 0.000 + (1 + (rand() % 3)) * 0.05;
-    req.request.pose.position.z = 0.86;
+    req.request.pose.position.z = 0.80;
     req.request.pose.orientation.x = -0.5481993;
     req.request.pose.orientation.y = 0.4501637;
     req.request.pose.orientation.z = 0.4551655;
@@ -290,7 +287,7 @@ public:
     return 4;
   };
 
-  void callback_cubelist(laundryman::CubeInfoList cube_visionlist) {
+  void callback_cubelist(const laundryman::CubeInfoList &cube_visionlist) {
     ROS_INFO("Msg recv");
     for (int i = 0; i < cube_visionlist.data.size(); i++) {
 
@@ -323,8 +320,8 @@ public:
 
         nh.serviceClient<laundryman::MotionService>("motion_control");
 
-    sub_cubeinfolist = nh.subscribe<laundryman::CubeInfoList>(
-        "/vision_node/cube_info_list", 1, &LaundryMan::callback_cubelist, this);
+    sub_cubeinfolist = nh.subscribe("/vision_node/cube_info_list", 1,
+                                    &LaundryMan::callback_cubelist, this);
 
     pl = PrologClient("/rosprolog", true);
 
