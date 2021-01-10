@@ -18,7 +18,7 @@ unzip it in the laundryman root dir
 ## Run simulation with tables, cubes and the robot model
 roslaunch laundryman laundryman.launch
 
-## Run navigation + Rviz + aruco detection
+## Run navigation + Rviz + aruco detection + rosprolog
 roslaunch laundryman navigation.launch
 
 ## Run the CNN node
