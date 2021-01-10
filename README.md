@@ -1,24 +1,28 @@
-# laundryman
-SSY235 project
+# laundryman SSY235 project
 
 
- 1.Clone this repo to the same catkin workspace with tiago_public_ws
+Clone this repo to a catkin workspace
 
-
-## run simulation with tables and cubes
+## Run simulation with tables, cubes and the robot model
 roslaunch laundryman laundryman.launch
 
-## run navigation
+## Run navigation + Rviz + aruco detection
 1. cp -r path/to/map $HOME/.pal
 2. roslaunch laundryman navigation.launch
 
-## run motion control
-rosrun laundryman motion_control_node
+## Run the CNN node
+rosrun laundryman vision_node
 
-## control the robot
+## Run motion control
+rosrun laundryman motion_control_node
+### control the robot manually
 rostopic pub /move_to_bucket std_msgs/UInt32 "data: 0" --once
 
 change the 0 to 0, 1, 2, 3 to select tables
-
 ## Change camera resolution:
-simulation_ws/src/tiago_robot/tiago_description/urdf/sensors/openni.gazebo.xacro
+In simulation_ws/src/tiago_robot/tiago_description/urdf/sensors/openni.gazebo.xacro
+
+Change the camera resolution to 1920x1080 to get a stable aruco detection and pose estimation.
+
+## Run the laundry sorting process
+rosrun laundryman main_node
